@@ -37,26 +37,27 @@ def test_assinatura_plano_sucesso(fake_plano):
         mock_nova_assinatura.ativa = True
         MockPlano.return_value = mock_nova_assinatura
 
-        resultado = assinar_plano_service.assinar_plano(fake_plano, data)
+        resultado, status = assinar_plano_service.assinar_plano({
+            "id_tipo_plano": fake_plano.id_tipo_plano,
+            "id_conta": fake_plano.id_conta
+        })
 
-        assert resultado is mock_nova_assinatura
-        assert resultado.ativa is True
+        assert resultado == mock_nova_assinatura.to_dict()
+        assert status == 200
         mock_db.session.add.assert_called_once_with(mock_nova_assinatura)
         mock_db.session.commit.assert_called_once()
 
-def test_assinatura_plano_falha(fake_plano):
-    data = {}  
-
+def test_assinatura_plano_falha():
     with patch('services.assinar_plano_service.Tipo_Plano') as MockTipoPlano, \
          patch('services.assinar_plano_service.db') as mock_db:
         
-        mock_tipo = MagicMock()
-        mock_tipo.duracao_dias = 365
-        MockTipoPlano.query.get.return_value = mock_tipo
-
-        resultado = assinar_plano_service.assinar_plano(fake_plano, data)
+        resultado, status = assinar_plano_service.assinar_plano({
+            "id_tipo_plano": None,
+            "id_conta": None
+        })
 
         assert resultado is None
+        assert status == 500
         mock_db.session.rollback.assert_called_once()
 
 

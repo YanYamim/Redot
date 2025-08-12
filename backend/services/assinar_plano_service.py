@@ -5,6 +5,10 @@ import traceback
 def assinar_plano(data):
     try:
 
+        if not data.get("id_tipo_plano") or not data.get("id_conta"):
+            db.session.rollback()
+            return None, 500
+        
         tipo_plano = Tipo_Plano.query.get(data['id_tipo_plano'])
         
         data_inicio_plano = date.today()
