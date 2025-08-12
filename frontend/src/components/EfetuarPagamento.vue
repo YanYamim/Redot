@@ -80,7 +80,8 @@ const planoSelecionado = ref('')
 const planosIds = {
   'Redot Test': 1,   
   'Redot': 2,        
-  'Redot Note': 3    
+  'Redot Note': 3,
+  'Redot Advance': 4
 }
 
 const initialState = { formaPagamento: '', numeroCartao: '', validadeCartao: '', cvc: ''}

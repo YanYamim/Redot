@@ -2,7 +2,7 @@
   <div class="bg-white h-100">
     <v-responsive
       class="align-centerfill-height mx-auto "
-      max-width="900"
+      max-width="1000"
     >
       <PlanosPagamentos />
     </v-responsive>

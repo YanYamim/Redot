@@ -8,7 +8,7 @@
       <v-btn text href="/">Home</v-btn>
       <v-btn text href="/sobre">Sobre nós</v-btn>
       <v-btn text href="/faq">FAQ</v-btn>
-      <v-btn text href="/demonstracao">Demonstração</v-btn>
+      <v-btn text href="/planos">Serviços</v-btn>
       <v-btn text href="/Radar">Radar</v-btn>
     </div>
 

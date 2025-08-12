@@ -120,6 +120,22 @@
             </v-btn>
         </v-container>
       </v-lazy>
+
+      <v-lazy>
+      <v-container fluid class="py-16 d-flex flex-column align-center justify-center text-center" style="background-color: #213880">
+          <h1 class="mb-6 text-white text-center">
+            Para quem é o Redot?
+          </h1>
+          <v-row>
+            <col>
+              <v-card>
+                <v-icon></v-icon>
+              </v-card>
+            </col>
+          </v-row>
+        </v-container>
+      </v-lazy>
+
       <div class="d-flex ga-3">
         <img :src="planos" alt="logo" class="logo_footer"></img>
       </div>
@@ -150,7 +166,6 @@
 
 <script setup>
 import router from '@/router'
-import { shallowRef } from 'vue'
 import redot_sem_texto from '@/assets/redot_sem_texto.png'
 import planos from '@/assets/planos.png'
 
