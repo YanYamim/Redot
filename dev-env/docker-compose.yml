@@ -1,0 +1,29 @@
+services:
+  dev-env:
+    build: 
+      context: .
+      args:
+        POSTGRES_VERSION: ${POSTGRES_VERSION}
+        NODE_VERSION: ${NODE_VERSION}
+
+    env_file:
+      - ./dev.env
+
+    restart: always
+
+    volumes:
+      - ../:/home/redot/app
+      - ~/.ssh:/home/redot/.ssh
+      - ~/.gitconfig:/home/redot/.gitconfig
+
+    tty: true
+    user: 1000:1000
+
+    environment:
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+
+    ports:
+      - 127.0.0.1:5000:5000  
+      - 127.0.0.1:5433:5432 
