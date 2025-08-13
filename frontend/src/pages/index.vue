@@ -121,20 +121,142 @@
         </v-container>
       </v-lazy>
 
-      <v-lazy>
-      <v-container fluid class="py-16 d-flex flex-column align-center justify-center text-center" style="background-color: #213880">
-          <h1 class="mb-6 text-white text-center">
-            Para quem é o Redot?
-          </h1>
-          <v-row>
-            <col>
-              <v-card>
-                <v-icon></v-icon>
+      <v-lazy class="bg-white">
+        <v-container fluid class="py-16">
+          <v-row align="center" justify="center"> 
+            <v-col cols="12" md="6" class="text-left pa-6"> 
+              <div>
+                <img :src="redot_sem_texto" alt="Logo" class="w-40 mb-4"><br></br>
+                <a style="color: #213880;" class="text-h3">
+                  Comece agora a<br>
+                  identificar quem<br>
+                  está te copiando
+                </a>
+              </div>
+            </v-col>
+
+            <v-col cols="12" md="4" class="pa-6"> 
+              <v-card class="pa-4 text-center rounded-xl bg-white text-black" style="border: 2px solid #213880;">
+                <v-sheet
+                  color="indigo darken-1"
+                  height="32"
+                  class="d-flex align-center justify-center rounded-t-lg ma-n5"
+                >
+                  <span class="white--text font-weight-bold text-caption">Recomendado</span>
+                </v-sheet>
+
+                <div class="mt-6 text-h4 font-weight-bold fonte-personalizada">Redot</div>
+                <div class="text-caption text-grey">plano anual</div>
+
+                <div class="d-flex align-center mt-6">
+                  <div class="text-h8 text-decoration-line-through font-weight-bold text-left mr-2">R$2.500,00</div>
+                  <v-chip color="green" text-color="white" small class="mt-1">40% OFF</v-chip>
+                </div>
+
+                <div class="text-h4 font-weight-bold color-padrao">R$49,79 <span class="text-caption">/ mês</span></div>
+                
+                <v-divider class="my-3"></v-divider>
+
+                <v-btn color="green" class="mt-4 rounded-pill" @click="comecar">Identificar agora</v-btn>
+
+                <v-list dense class="bg-white">
+                  <v-list-item>
+                    <v-list-item-content class="d-flex align-center">
+                      <v-icon color="success" class="mr-2">mdi-check</v-icon>
+                      <span>Identificador de concorrentes.</span>
+                    </v-list-item-content>
+                  </v-list-item>
+
+                  <v-list-item>
+                    <v-list-item-content class="d-flex align-center">
+                      <v-icon color="success" class="mr-2">mdi-check</v-icon>
+                      <span>Identificador de perfil.</span>
+                    </v-list-item-content>
+                  </v-list-item>
+
+                  <v-list-item>
+                    <v-list-item-content class="d-flex align-center">
+                      <v-icon color="success" class="mr-2">mdi-check</v-icon>
+                      <span>Identificador de perfil de anúncio.</span>
+                    </v-list-item-content>
+                  </v-list-item>
+
+                  <v-list-item>
+                    <v-list-item-content class="d-flex align-center">
+                      <v-icon color="success" class="mr-2">mdi-check</v-icon>
+                      <span>Identificador de contas.</span>
+                    </v-list-item-content>
+                  </v-list-item>
+                </v-list>
               </v-card>
-            </col>
+            </v-col>
           </v-row>
         </v-container>
       </v-lazy>
+
+      <v-lazy>
+        <v-container fluid class="py-16 d-flex flex-column align-center justify-center text-center" style="background-color: #213880">
+            <h1 class="mb-6 text-white">
+              Vai deixar seu concorrente reinar ou identificar?
+            </h1>
+          </v-container>
+        </v-lazy>
+
+      <v-lazy class="bg-grey">
+        <v-container fluid class="py-16 d-flex flex-column align-center justify-center text-center">
+          <h1 class="mb-6 text-white text-center">Veja quem usou nossa solução</h1>
+          <v-row class="d-flex justify-space-around"> 
+
+            <v-col cols="12" md="5" class="px-4"> 
+              <v-card class="bg-white rounded-lg pa-6" height="100%"> 
+                <h1 class="my-4 text-red">CHARME KIDS - Moda infatil</h1> 
+                <h3 class="text-grey">Os resultados foram bastantes satisfatórios, descobri várias<br></br>
+                empresas usando o nome da minha marca sem minha devida permissão</h3>
+              </v-card>
+            </v-col>
+
+            <v-col cols="12" md="5" class="px-4">
+              <v-card class="bg-white rounded-lg pa-6" height="100%">
+                <h1 class="my-4 text-red">Tomás Menezes</h1>
+                <h3 class="text-grey">A experiência foi imediata e<br></br>incrível, com o Redot consegui descobrir vários<br></br>
+                  concorrentes que estavam usando minha marca</h3>
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-lazy>
+
+      <v-lazy>
+      <v-container fluid class="py-16 d-flex flex-column align-center justify-center text-center" style="background-color: #213880">
+        <h1 class="mb-6 text-white text-center">Para quem é o Redot?</h1>
+        <v-row class="d-flex justify-space-around"> 
+
+          <v-col cols="12" md="3" class="px-4"> 
+            <v-card class="bg-white rounded-lg pa-6" height="100%"> 
+              <v-icon size="48" color="black" class="mt-4">mdi-account-supervisor</v-icon>
+              <h1 class="my-4 text-red">Influenciadores</h1> 
+              <h3>Ajuda na busca de quem pode estar te copiando</h3>
+            </v-card>
+          </v-col>
+
+          <v-col cols="12" md="3" class="px-4">
+            <v-card class="bg-white rounded-lg pa-6" height="100%">
+              <v-icon size="48" color="black" class="mt-4">mdi-factory</v-icon>
+              <h1 class="my-4 text-red">Indústria</h1>
+              <h3>Identifica informações falsas ou perfis piratas</h3>
+            </v-card>
+          </v-col>
+
+          <v-col cols="12" md="3" class="px-4">
+            <v-card class="bg-white rounded-lg pa-6" height="100%">
+              <v-icon size="48" color="black" class="mt-4">mdi-store</v-icon>
+              <h1 class="my-4 text-red">Comércio</h1>
+              <h3>Localize concorrentes utilizando seu nome</h3>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-lazy>
 
       <div class="d-flex ga-3">
         <img :src="planos" alt="logo" class="logo_footer"></img>
@@ -182,5 +304,4 @@ const duvidas = async () => {
 .logo_sem_texto {
   max-width: 60px;
 }
-
 </style>
