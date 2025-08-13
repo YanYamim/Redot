@@ -227,6 +227,26 @@
       </v-lazy>
 
       <v-lazy>
+        <v-container fluid class="py-16 d-flex flex-column align-center justify-center text-center">
+          <h1 class="mb-8" style="color: #213880">Saia na frente e com vantagem</h1> 
+          
+          <div class="d-flex flex-column align-center" style="width: 100%; max-width: 800px;">
+            <div class="d-flex justify-space-between w-100 mb-4">
+              <h2 class="text-left" style="width: 45%; color: #213880;">Identifique<br></br>Anúncios</h2>
+              <h2 class="text-right" style="width: 45%; color: #213880">Identifique<br></br> Contas</h2> 
+            </div>
+            
+            <img :src="redot_sem_fundo" alt="logo" class="logo_sem_fundo my-6">
+            
+              <div class="d-flex justify-space-between w-100 mt-4">
+              <h2 class="text-left" style="width: 45%; color: #213880">Identifique<br></br> Concorrentes</h2> 
+              <h2 class="text-right" style="width: 45%; color: #213880">Combate a<br></br> falsificações</h2> 
+            </div>
+          </div>
+        </v-container>
+      </v-lazy>
+
+      <v-lazy>
       <v-container fluid class="py-16 d-flex flex-column align-center justify-center text-center" style="background-color: #213880">
         <h1 class="mb-6 text-white text-center">Para quem é o Redot?</h1>
         <v-row class="d-flex justify-space-around"> 
@@ -289,6 +309,7 @@
 <script setup>
 import router from '@/router'
 import redot_sem_texto from '@/assets/redot_sem_texto.png'
+import redot_sem_fundo from '@/assets/redot_sem_fundo.png'
 import planos from '@/assets/planos.png'
 
 const comecar = async () => {
@@ -303,5 +324,9 @@ const duvidas = async () => {
 <style scoped>
 .logo_sem_texto {
   max-width: 60px;
+}
+
+.logo_sem_fundo {
+  max-width: 150px;
 }
 </style>
