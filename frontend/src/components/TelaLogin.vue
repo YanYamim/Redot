@@ -34,6 +34,12 @@
           </v-btn>
         </v-row>
 
+        <v-row v-if="errorMessage" justify="center" class="mt-4">
+          <v-alert type="error" dense>
+            {{ errorMessage }}
+          </v-alert>
+        </v-row>
+
         <v-row justify="center" class="mt-6">
           <h3 class="text-center">
             Não tem uma conta?<br />
@@ -55,7 +61,8 @@ import axios from 'axios'
 const router = useRouter()
 const form = ref(null)
 const valid = ref(null)
-
+const errorMessage = ref('')
+const isLoading = ref(false)
 const initialState = { email: '', senha: '' }
 const state = reactive({ ...initialState })
 
@@ -67,14 +74,32 @@ const rules = {
 }
 
 const acessarUsuario = async () => {
-  const result = await form.value.validate()
-  if(!result.valid) return
+  const { valid } = await form.value.validate()
+  if(!valid) return
 
   try {
-    await axios.post(`http://127.0.0.1:5000/usuario/cadastro`, body)
-    router.push('/login/')
+    errorMessage.value = ''
+
+    const response = await axios.post(`http://127.0.0.1:5000/login`, {
+      email: state.email,
+      senha: state.senha
+    })
+
+    if(!response.data.status === 'success') {
+      errorMessage.value = response.data.message || 'Credenciais inválidas'
+    }
+
+    localStorage.setItem('authToken', 'authenticated')
+    router.push('/Radar')
+    window.location.reload()
+
   } catch (error) {
-    console.error('Erro ao cadastrar:', error)
+    if (error.response) {
+      errorMessage.value = error.response.data.message || 'Erro na autenticação'
+    } else {
+      errorMessage.value = 'Não foi possível conectar ao servidor'
+    }
+    console.error('Erro na autenticação:', error)
   }
 }
 </script>
