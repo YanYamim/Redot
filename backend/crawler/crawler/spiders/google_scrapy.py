@@ -37,7 +37,7 @@ class GoogleSpider(scrapy.Spider):
             if title and url:
                 data = {
                     'nome_pesquisa': self.nome_perfil,
-                    'nome_resultado': title.strip(),
+                    'resultado': title.strip(),
                     'fonte': 'google',
                     'url': response.urljoin(url)
                 }

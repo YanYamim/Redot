@@ -28,7 +28,7 @@ class FacebookSpider(scrapy.Spider):
         if title:
             data = {
                 'nome_pesquisa': self.nome_perfil,
-                'nome_resultado': title.strip(),
+                'resultado': title.strip(),
                 'fonte': 'facebook',
                 'url': response.url
             }

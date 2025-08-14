@@ -6,7 +6,7 @@ def salvar_pesquisa(data):
     try:
         nova_pesquisa = Pesquisa(
             nome_pesquisa=data['nome_pesquisa'],
-            nome_resultado=data['nome_resultado'],
+            resultado=data['resultado'],
             fonte=data['fonte'],
             url_resultado=data['url']
         )
@@ -31,7 +31,7 @@ def buscar_resultados_bd(nome_perfil):
         
         return {
             "resultados": [{
-                "titulo": r.nome_resultado,
+                "titulo": r.resultado,
                 "fonte": r.fonte.lower(),  
                 "url": r.url_resultado,
                 "id": r.id_pesquisa
