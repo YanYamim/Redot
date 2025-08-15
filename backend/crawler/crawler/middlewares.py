@@ -52,6 +52,13 @@ class CrawlerSpiderMiddleware:
     def spider_opened(self, spider):
         spider.logger.info("Spider opened: %s" % spider.name)
 
+class ProxyMiddleware:
+    def process_request(self, request, spider):
+        proxy_user = 'Mavi__fz8CY-country-US'
+        proxy_pass = 'Xman2025Mavip=PB'
+        proxy_server = 'dc.oxylabs.io:8000'
+        
+        request.meta['proxy'] = f'http://{proxy_user}:{proxy_pass}@{proxy_server}'
 
 class CrawlerDownloaderMiddleware:
     # Not all methods need to be defined. If a method is not defined,

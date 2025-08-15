@@ -14,6 +14,10 @@ NEWSPIDER_MODULE = "crawler.spiders"
 
 ADDONS = {}
 
+# Proxy configuration
+PROXY_USER = 'Mavi__fz8CY-country-US'
+PROXY_PASS = 'Xman2025Mavip=PB'
+PROXY_SERVER = 'dc.oxylabs.io:8000'
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "crawler (+http://www.yourdomain.com)"
@@ -46,9 +50,18 @@ DOWNLOAD_DELAY = 1
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    "crawler.middlewares.CrawlerDownloaderMiddleware": 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+    'python_scrappy.backend.crawler.crawler.middlewares.ProxyMiddleware': 350, 
+    'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 400,
+}
+
+HTTP_PROXY = f'http://{PROXY_USER}:{PROXY_PASS}@{PROXY_SERVER}'
+HTTPS_PROXY = f'http://{PROXY_USER}:{PROXY_PASS}@{PROXY_SERVER}'
+
+PROXIES = {
+    'http': HTTP_PROXY,
+    'https': HTTPS_PROXY,
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
