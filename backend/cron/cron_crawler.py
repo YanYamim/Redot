@@ -1,8 +1,16 @@
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import atexit
-from crawler.crawler.run_crawler import executar_spiders 
 from datetime import datetime
+import threading
+import logging
+from crawler.crawler.run_crawler import executar_spiders
+
+logging.basicConfig()
+logger = logging.getLogger('apscheduler')
+logger.setLevel(logging.INFO)
+
+scrapy_lock = threading.Lock()
 
 ultimos_resultados = {
     'dados': None,
@@ -15,49 +23,70 @@ pesquisa_atual = {"nome_perfil": None}
 def start_scrapy(frequencia, app):
     nome_perfil = pesquisa_atual.get("nome_perfil")
     if not nome_perfil:
-        print(f"[{frequencia.upper()}] Nenhum termo para pesquisar ainda.")
+        logger.warning(f"[{frequencia.upper()}] Nenhum perfil definido para pesquisa.")
         return
     
-    try:
-        resultados = executar_spiders(nome_perfil, app)
-        ultimos_resultados['dados'] = resultados
-        ultimos_resultados['ultima_execucao'] = datetime.now().isoformat()
-        ultimos_resultados['status'] = 'Sucesso'
-        print("Pesquisa concluída com sucesso!")
-    except Exception as e:
-        ultimos_resultados['status'] = f'Erro: {str(e)}'
-        print(f"Erro na pesquisa: {e}")
+    with scrapy_lock:
+        try:
+            logger.info(f"Iniciando scraping para {nome_perfil} ({frequencia})...")
+            executar_spiders(nome_perfil, app)
+            
+            ultimos_resultados.update({
+                'dados': "Scraping concluído com sucesso",
+                'ultima_execucao': datetime.now().isoformat(),
+                'status': 'Sucesso'
+            })
+            logger.info("Scraping finalizado com sucesso!")
+            
+        except Exception as e:
+            ultimos_resultados.update({
+                'dados': None,
+                'ultima_execucao': datetime.now().isoformat(),
+                'status': f'Erro: {str(e)}'
+            })
+            logger.error(f"Falha no scraping: {str(e)}")
 
 def start_crawler(app):
-    scheduler = BackgroundScheduler()
-
-    scheduler.add_job(
-        lambda: start_scrapy("minutalmente", app),
-        CronTrigger.from_crontab("* * * * *"),
-        name="crawl_minutal"
+    scheduler = BackgroundScheduler(
+        job_defaults={
+            'max_instances': 1,
+            'misfire_grace_time': 300  
+        },
+        timezone='America/Sao_Paulo'
     )
 
-    scheduler.add_job(
-        lambda: start_scrapy("diariamente", app),
-        CronTrigger.from_crontab("0 0 * * *"),
-        name="crawl_diario"
-    )
+    jobs = [
+        {
+            'func': lambda: start_scrapy("minutalmente", app),
+            'trigger': CronTrigger.from_crontab("* * * * *"),
+            'name': "crawl_minuto"
+        },
+        {
+            'func': lambda: start_scrapy("diariamente", app),
+            'trigger': CronTrigger.from_crontab("0 0 * * *"),
+            'name': "crawl_diario"
+        },
+        {
+            'func': lambda: start_scrapy("semanalmente", app),
+            'trigger': CronTrigger.from_crontab("0 0 * * MON"),
+            'name': "crawl_semanal"
+        },
+        {
+            'func': lambda: start_scrapy("mensalmente", app),
+            'trigger': CronTrigger.from_crontab("0 2 1 * *"),
+            'name': "crawl_mensal"
+        }
+    ]
 
-    scheduler.add_job(
-        lambda: start_scrapy("semanalmente", app),
-        CronTrigger.from_crontab("0 0 * * MON"),
-        name="crawl_semanal"
-    )
+    for job in jobs:
+        scheduler.add_job(**job)
 
-    scheduler.add_job(
-        lambda: start_scrapy("mensalmente", app),
-        CronTrigger.from_crontab("0 2 1 * *"),
-        name="crawl_mensal"
-    )
-
-    scheduler.start()
-    print("[CRON] Agendador iniciado.")
-    atexit.register(lambda: scheduler.shutdown())
+    try:
+        scheduler.start()
+        logger.info("🟢 Agendador CRON iniciado com sucesso")
+        atexit.register(lambda: scheduler.shutdown())
+    except Exception as e:
+        logger.error(f"🔴 Falha ao iniciar agendador: {str(e)}")
 
 def obter_resultados():
     return ultimos_resultados
