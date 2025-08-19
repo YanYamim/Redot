@@ -83,10 +83,10 @@ def start_crawler(app):
 
     try:
         scheduler.start()
-        logger.info("🟢 Agendador CRON iniciado com sucesso")
+        logger.info("Agendador CRON iniciado com sucesso")
         atexit.register(lambda: scheduler.shutdown())
     except Exception as e:
-        logger.error(f"🔴 Falha ao iniciar agendador: {str(e)}")
+        logger.error(f"Falha ao iniciar agendador: {str(e)}")
 
 def obter_resultados():
     return ultimos_resultados

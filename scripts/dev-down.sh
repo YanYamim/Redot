@@ -1,1 +1,1 @@
-docker compose -f compose-dev.yaml down
+docker compose down
