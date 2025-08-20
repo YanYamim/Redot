@@ -14,6 +14,9 @@ NEWSPIDER_MODULE = "crawler.spiders"
 
 ADDONS = {}
 
+# Align Twisted reactor with Crochet's default (installed on Linux)
+TWISTED_REACTOR = "twisted.internet.epollreactor.EPollReactor"
+
 # Proxy configuration
 PROXY_USER = 'Mavi__fz8CY-country-US'
 PROXY_PASS = 'Xman2025Mavip=PB'
@@ -51,7 +54,7 @@ DOWNLOAD_DELAY = 1
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-    'python_scrappy.backend.crawler.crawler.middlewares.ProxyMiddleware': 350, 
+    'crawler.crawler.middlewares.ProxyMiddleware': 350,
     'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 400,
 }
 

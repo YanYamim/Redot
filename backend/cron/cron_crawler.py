@@ -24,27 +24,26 @@ def start_scrapy(frequencia, app):
     nome_perfil = pesquisa_atual.get("nome_perfil")
     if not nome_perfil:
         logger.warning(f"[{frequencia.upper()}] Nenhum perfil definido para pesquisa.")
+        print("Nenhum termo para pesquisar")
         return
     
     with scrapy_lock:
         try:
             logger.info(f"Iniciando scraping para {nome_perfil} ({frequencia})...")
-            executar_spiders(nome_perfil, app)
-            
+            resultado = executar_spiders(nome_perfil, app)
             ultimos_resultados.update({
-                'dados': "Scraping concluído com sucesso",
+                'dados': resultado,
                 'ultima_execucao': datetime.now().isoformat(),
                 'status': 'Sucesso'
             })
             logger.info("Scraping finalizado com sucesso!")
-            
         except Exception as e:
             ultimos_resultados.update({
                 'dados': None,
                 'ultima_execucao': datetime.now().isoformat(),
                 'status': f'Erro: {str(e)}'
             })
-            logger.error(f"Falha no scraping: {str(e)}")
+            logger.exception("Falha no scraping")
 
 def start_crawler(app):
     scheduler = BackgroundScheduler(
@@ -59,7 +58,7 @@ def start_crawler(app):
         {
             'func': lambda: start_scrapy("minutalmente", app),
             'trigger': CronTrigger.from_crontab("* * * * *"),
-            'name': "crawl_minuto"
+            'name': "crawl_minutal"
         },
         {
             'func': lambda: start_scrapy("diariamente", app),

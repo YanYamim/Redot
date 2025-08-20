@@ -53,12 +53,30 @@ class CrawlerSpiderMiddleware:
         spider.logger.info("Spider opened: %s" % spider.name)
 
 class ProxyMiddleware:
+    def __init__(self, proxy_url: str | None = None):
+        self.proxy_url = proxy_url
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        settings = crawler.settings
+        proxy_user = settings.get('PROXY_USER')
+        proxy_pass = settings.get('PROXY_PASS')
+        proxy_server = settings.get('PROXY_SERVER')
+
+        proxy_url = None
+        if proxy_user and proxy_pass and proxy_server:
+            # Use HTTP scheme for proxy. HTTP proxies support tunneling HTTPS targets via CONNECT.
+            proxy_url = f'http://{proxy_user}:{proxy_pass}@{proxy_server}'
+
+        return cls(proxy_url=proxy_url)
+
     def process_request(self, request, spider):
-        proxy_user = 'Mavi__fz8CY-country-US'
-        proxy_pass = 'Xman2025Mavip=PB'
-        proxy_server = 'dc.oxylabs.io:8000'
-        
-        request.meta['proxy'] = f'http://{proxy_user}:{proxy_pass}@{proxy_server}'
+        # Respect an explicitly set proxy on the request
+        if 'proxy' in request.meta and request.meta['proxy']:
+            return
+
+        if self.proxy_url:
+            request.meta['proxy'] = self.proxy_url
 
 class CrawlerDownloaderMiddleware:
     # Not all methods need to be defined. If a method is not defined,

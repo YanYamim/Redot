@@ -4,9 +4,10 @@ from flask import jsonify
 
 def salvar_pesquisa(data):
     try:
+        resultado_valor = data.get('resultado') or data.get('nome_resultado')
         nova_pesquisa = Pesquisa(
             nome_pesquisa=data['nome_pesquisa'],
-            resultado=data['resultado'],
+            resultado=resultado_valor,
             fonte=data['fonte'],
             url_resultado=data['url']
         )

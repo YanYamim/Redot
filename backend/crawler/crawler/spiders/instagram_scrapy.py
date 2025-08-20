@@ -12,11 +12,6 @@ class InstagramSpider(scrapy.Spider):
         self.app_context = app_context
 
     def start_requests(self):
-        proxy_user = 'Mavi__fz8CY-country-US'
-        proxy_pass = 'Xman2025Mavip=PB'
-        proxy_server = 'dc.oxylabs.io:8000'
-        
-        proxy_url = f'http://{proxy_user}:{proxy_pass}@{proxy_server}'
         for url in self.start_urls:
             yield scrapy.Request(
                 url,
@@ -24,7 +19,6 @@ class InstagramSpider(scrapy.Spider):
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
                     'Accept-Language': 'en-US,en;q=0.9',
                 },
-                meta={'proxy': proxy_url},
                 callback=self.parse
             )
 
@@ -34,7 +28,7 @@ class InstagramSpider(scrapy.Spider):
         if title:
             data = {
                 'nome_pesquisa': self.nome_perfil,
-                'resultado': title.strip(),
+                'nome_resultado': title.strip(),
                 'fonte': 'instagram',
                 'url': response.url
             }

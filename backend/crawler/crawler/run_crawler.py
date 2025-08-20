@@ -1,32 +1,43 @@
-from scrapy.crawler import CrawlerProcess
-from threading import Thread
-import os
+import crochet
+crochet.setup()
+
+from scrapy.crawler import CrawlerRunner
 from scrapy.utils.project import get_project_settings
+from scrapy.settings import Settings
+from importlib import import_module
+from twisted.internet import defer
 from crawler.crawler.spiders.google_scrapy import GoogleSpider
 from crawler.crawler.spiders.facebook_scrapy import FacebookSpider
 from crawler.crawler.spiders.instagram_scrapy import InstagramSpider
 
-def run_spider(spider_class, nome_perfil, app_context):
-    try:
-        os.environ['SCRAPY_PYTHON_SHELL'] = '1'
-        process = CrawlerProcess(get_project_settings())
-        process.crawl(spider_class, nome_perfil=nome_perfil, app_context=app_context)
-        process.start()
-    except Exception as e:
-        print(f"Erro no spider {spider_class.__name__}: {str(e)}")
+@crochet.run_in_reactor
+def _crawl_all(nome_perfil, app_context):
+    # Ensure Scrapy loads our project settings (including TWISTED_REACTOR)
+    settings_module = import_module('crawler.crawler.settings')
+    settings: Settings = Settings()
+    settings.setmodule(settings_module, priority='project')
+    runner = CrawlerRunner(settings)
+    deferred_crawls = [
+        runner.crawl(FacebookSpider, nome_perfil=nome_perfil, app_context=app_context),
+        runner.crawl(InstagramSpider, nome_perfil=nome_perfil, app_context=app_context),
+        runner.crawl(GoogleSpider, nome_perfil=nome_perfil, app_context=app_context),
+    ]
+    return defer.DeferredList(deferred_crawls, fireOnOneErrback=False, consumeErrors=False)
 
 def executar_spiders(nome_perfil, app):
-    threads = []
+    eventual = _crawl_all(nome_perfil, app.app_context)
+    # Wait up to 30 minutes for all spiders
+    results = eventual.wait(timeout=1800)
 
-    for spider in [FacebookSpider, InstagramSpider, GoogleSpider]:
-        thread = Thread(
-            target=run_spider,
-            args=(spider, nome_perfil, app.app_context),
-            daemon=True
-        )
-    
-    threads.append(thread)
-    thread.start()
-    
-    for thread in threads:
-        thread.join(timeout=1800)  
+    failures = []
+    for succeeded, payload in results:
+        if not succeeded:
+            try:
+                failures.append(str(payload.value))
+            except Exception:
+                failures.append(repr(payload))
+
+    if failures:
+        raise Exception("; ".join(failures))
+
+    return {"result": "ok"}
