@@ -22,6 +22,10 @@ class InstagramSpider(scrapy.Spider):
                 callback=self.parse
             )
 
+    async def start(self):
+        async for req in super().start():
+            yield req
+
     def parse(self, response):
         title = response.css('title::text').get()
 

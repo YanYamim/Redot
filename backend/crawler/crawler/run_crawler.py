@@ -2,7 +2,6 @@ import crochet
 crochet.setup()
 
 from scrapy.crawler import CrawlerRunner
-from scrapy.utils.project import get_project_settings
 from scrapy.settings import Settings
 from importlib import import_module
 from twisted.internet import defer
@@ -12,7 +11,6 @@ from crawler.crawler.spiders.instagram_scrapy import InstagramSpider
 
 @crochet.run_in_reactor
 def _crawl_all(nome_perfil, app_context):
-    # Ensure Scrapy loads our project settings (including TWISTED_REACTOR)
     settings_module = import_module('crawler.crawler.settings')
     settings: Settings = Settings()
     settings.setmodule(settings_module, priority='project')
@@ -26,7 +24,6 @@ def _crawl_all(nome_perfil, app_context):
 
 def executar_spiders(nome_perfil, app):
     eventual = _crawl_all(nome_perfil, app.app_context)
-    # Wait up to 30 minutes for all spiders
     results = eventual.wait(timeout=1800)
 
     failures = []

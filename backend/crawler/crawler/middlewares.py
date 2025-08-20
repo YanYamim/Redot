@@ -65,8 +65,11 @@ class ProxyMiddleware:
 
         proxy_url = None
         if proxy_user and proxy_pass and proxy_server:
+            auth_user = proxy_user
+            if not auth_user.startswith('user-') and not auth_user.startswith('customer-'):
+                auth_user = f'user-{auth_user}'
             # Use HTTP scheme for proxy. HTTP proxies support tunneling HTTPS targets via CONNECT.
-            proxy_url = f'http://{proxy_user}:{proxy_pass}@{proxy_server}'
+            proxy_url = f'http://{auth_user}:{proxy_pass}@{proxy_server}'
 
         return cls(proxy_url=proxy_url)
 

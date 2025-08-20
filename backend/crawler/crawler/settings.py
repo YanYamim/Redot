@@ -9,8 +9,9 @@
 
 BOT_NAME = "crawler"
 
-SPIDER_MODULES = ["crawler.spiders"]
-NEWSPIDER_MODULE = "crawler.spiders"
+# Correct package paths for this project structure
+SPIDER_MODULES = ["crawler.crawler.spiders"]
+NEWSPIDER_MODULE = "crawler.crawler.spiders"
 
 ADDONS = {}
 
