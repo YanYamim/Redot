@@ -98,7 +98,6 @@ const buscarResultado = async () => {
   if (!palavraPesquisa.value) return;
   
   loading.value = true;
-  resultados.value = [];
   mensagemBackend.value = '';
   resultadosCarregados.value = false;
 
@@ -141,8 +140,16 @@ const buscarResultadosPeriodicamente = async () => {
       
       if (data.erro) throw new Error(data.erro);
       
-      resultados.value = data.resultados;
-      totalResultados.value = data.total;
+      const existentes = new Set(resultados.value.map(r => r.id));
+      const novos = data.resultados
+        .filter(r => !existentes.has(r.id))
+        .map(r => ({
+          ...r,
+          empresa: palavraPesquisa.value
+        }));
+      resultados.value = [...resultados.value, ...novos];
+      
+      totalResultados.value = resultados.value.length;
       
       const deveParar = data.resultados.length > 0 || 
                        data.status === 'completo' || 
