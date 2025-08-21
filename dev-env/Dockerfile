@@ -1,70 +1,54 @@
 FROM ubuntu:noble
 
-# Variáveis de versão
-ARG NODE_VERSION=18.19.1
-ARG POSTGRES_VERSION=17
+# Versões
 ARG USER="redot"
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 
-# Evitar prompts interativos
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Atualiza pacotes e instala dependências
+# Pacotes básicos para Python/Node e build
 RUN apt update && apt upgrade -y && \
     apt install -y \
-    python3 python3-pip python3-venv \
+    python3 python3-pip python3-venv python3-dev \
     curl wget git sudo \
     build-essential libpq-dev gcc \
-    postgresql-${POSTGRES_VERSION} postgresql-contrib \
+    libffi-dev libssl-dev pkg-config \
+    libxml2-dev libxslt1-dev zlib1g-dev \
     locales locales-all && \
     apt clean && rm -rf /var/lib/apt/lists/*
 
-# Configura locale
+# Locale
 ENV LC_ALL=en_US.UTF-8
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US.UTF-8
 
-# Instala Node
-RUN curl -fsSL https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz \
-    -o /tmp/node.tar.xz && \
-    tar -xf /tmp/node.tar.xz -C /opt && \
-    mv /opt/node-v${NODE_VERSION}-linux-x64 /opt/node && \
-    ln -s /opt/node/bin/node /usr/local/bin/node && \
-    ln -s /opt/node/bin/npm /usr/local/bin/npm && \
-    ln -s /opt/node/bin/npx /usr/local/bin/npx && \
-    rm /tmp/node.tar.xz
+# Node (via NodeSource)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Configura Postgres para aceitar conexões externas
-RUN sed -i 's/peer/trust/g' /etc/postgresql/${POSTGRES_VERSION}/main/pg_hba.conf && \
-    sed -i 's/scram-sha-256/trust/g' /etc/postgresql/${POSTGRES_VERSION}/main/pg_hba.conf && \
-    sed -i 's/127.0.0.1\/32/0.0.0.0\/0/g' /etc/postgresql/${POSTGRES_VERSION}/main/pg_hba.conf && \
-    echo "listen_addresses = '*'" >> /etc/postgresql/${POSTGRES_VERSION}/main/postgresql.conf
+# Prepara diretório de trabalho para UID/GID em runtime
+RUN mkdir -p /home/${USER}/app && chown -R ${USER_ID}:${GROUP_ID} /home/${USER}
 
-# Cria usuário não-root para desenvolvimento
-RUN useradd -m -u ${USER_ID} -s /bin/bash ${USER} && \
-    groupmod -g ${GROUP_ID} ${USER} && \
-    usermod -aG sudo ${USER} && \
-    echo "${USER} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${USER}
-
-USER ${USER}
-WORKDIR /home/${USER}
-
-# Instala dependências Python
-COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install -r requirements.txt
-
-# Instala dependências Node (para Vue/Vuetify)
 WORKDIR /home/${USER}/app
-COPY package*.json ./
-RUN npm install
 
-# Cria pasta para extensões do VSCode
-RUN mkdir -p /home/${USER}/.vscode-server/extensions
+# Cria e usa venv para evitar conflitos com pip no sistema
+RUN python3 -m venv /opt/venv
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
-# Porta padrão (Flask + Postgres)
-EXPOSE 5000 5432 5173
+# Copia apenas manifests para cache de dependências
+COPY --chown=${USER_ID}:${GROUP_ID} ../backend/requirements.txt /home/${USER}/app/backend/requirements.txt
+# Evita erro em sqlpython com validação recente de entry points
+RUN python -m pip install --upgrade "pip<24" "setuptools<69" "wheel<0.42" && \
+    python -m pip install --no-cache-dir -r backend/requirements.txt
 
-# Comando default (apenas mantém container ativo no modo dev)
+COPY --chown=${USER_ID}:${GROUP_ID} ../frontend/package*.json /home/${USER}/app/frontend/
+RUN cd frontend && npm install
+
+# Portas de dev (Flask/Vite)
+EXPOSE 5000 5173
+
+# Shell interativo por padrão
 CMD ["bash"]
