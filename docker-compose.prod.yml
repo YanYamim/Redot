@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  # Banco de dados PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: redot-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-redot}
+      POSTGRES_HOST_AUTH_METHOD: md5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - redot-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-redot}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Backend Flask
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: redot-backend
+    restart: always
+    environment:
+      FLASK_APP: app.py
+      FLASK_ENV: production
+      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-redot}
+      SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${DB_USER:-postgres}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-redot}
+      SECRET_KEY: ${SECRET_KEY}
+      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - redot-network
+    volumes:
+      - ./backend/logs:/app/logs
+    command: gunicorn --bind 0.0.0.0:5000 --workers 4 --threads 2 --timeout 120 app:app
+
+  # Frontend Vue + Nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://backend:5000}
+    container_name: redot-frontend
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - redot-network
+
+  # Nginx como reverse proxy principal
+  nginx:
+    image: nginx:alpine
+    container_name: redot-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - redot-network
+
+networks:
+  redot-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
