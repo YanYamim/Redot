@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc --build --force && vite build",
-    "preview": "vite preview",
     "build-only": "vite build",
+    "preview": "vite preview",
     "type-check": "vue-tsc --build --force",
     "lint": "eslint . --fix"
   },

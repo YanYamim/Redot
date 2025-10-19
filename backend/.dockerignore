@@ -1,0 +1,41 @@
+# Ignorar dependências locais e cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual envs
+.venv/
+env/
+venv/
+ENV/
+
+# Arquivos temporários e logs
+*.log
+logs/
+*.sqlite3
+*.db
+
+# Cache do pip e build
+pip-wheel-metadata/
+*.egg-info/
+build/
+dist/
+
+# Configs locais
+.env
+.env.*
+*.pem
+*.crt
+*.key
+
+# Git e IDEs
+.git/
+.gitignore
+.vscode/
+.idea/
+.DS_Store
+
+# Docker
+Dockerfile
+docker-compose.yml
