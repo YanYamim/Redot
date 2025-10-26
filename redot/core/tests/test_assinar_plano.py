@@ -12,7 +12,6 @@ class AssinarPlanoTestCase(TestCase):
 
     def setUp(self):
         """Configuração inicial dos testes"""
-        # Criar um usuário de teste
         self.usuario = Usuario.objects.create(
             tipo='F',
             email='teste@email.com',
@@ -20,7 +19,6 @@ class AssinarPlanoTestCase(TestCase):
             cpf='12345678900'
         )
 
-        # Criar uma conta de teste
         self.conta = Conta.objects.create(
             id_usuario=self.usuario,
             login='joao.silva',
@@ -28,7 +26,6 @@ class AssinarPlanoTestCase(TestCase):
             data_criacao=date.today()
         )
 
-        # Criar tipos de plano (sem especificar ID)
         self.plano_mensal = TipoPlano.objects.create(
             nome_tipo_plano='Plano Mensal Teste',
             preco=29.90,
@@ -55,7 +52,6 @@ class AssinarPlanoTestCase(TestCase):
         self.assertEqual(resultado['id_conta'], self.conta.id_conta)
         self.assertTrue(resultado['ativa'])
 
-        # Verifica se foi salvo no banco
         plano = Plano.objects.get(id_plano=resultado['id_plano'])
         self.assertIsNotNone(plano)
         self.assertEqual(plano.id_tipo_plano.id_tipo_plano, self.plano_mensal.id_tipo_plano)
@@ -107,7 +103,7 @@ class AssinarPlanoTestCase(TestCase):
     def test_assinatura_tipo_plano_inexistente(self):
         """Testa erro quando tipo de plano não existe"""
         data = {
-            'id_tipo_plano': 9999,  # ID que não existe
+            'id_tipo_plano': 9999,  
             'id_conta': self.conta.id_conta
         }
 
@@ -129,13 +125,11 @@ class AssinarPlanoTestCase(TestCase):
         self.assertEqual(status, 200)
         self.assertTrue(resultado['ativa'])
 
-        # Verifica no banco
         plano = Plano.objects.get(id_plano=resultado['id_plano'])
         self.assertTrue(plano.ativa)
 
     def test_multiplas_assinaturas_mesma_conta(self):
         """Testa que é possível ter múltiplas assinaturas para a mesma conta"""
-        # Primeira assinatura
         data1 = {
             'id_tipo_plano': self.plano_mensal.id_tipo_plano,
             'id_conta': self.conta.id_conta
@@ -143,7 +137,6 @@ class AssinarPlanoTestCase(TestCase):
         resultado1, status1 = assinar_plano(data1)
         self.assertEqual(status1, 200)
 
-        # Segunda assinatura (upgrade para anual)
         data2 = {
             'id_tipo_plano': self.plano_anual.id_tipo_plano,
             'id_conta': self.conta.id_conta
@@ -151,7 +144,6 @@ class AssinarPlanoTestCase(TestCase):
         resultado2, status2 = assinar_plano(data2)
         self.assertEqual(status2, 200)
 
-        # Verifica que ambas existem
         planos = Plano.objects.filter(id_conta=self.conta)
         self.assertEqual(planos.count(), 2)
 
