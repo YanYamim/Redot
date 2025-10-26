@@ -70,6 +70,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { API_ENDPOINTS } from '@/config/api'
 
 const router = useRouter()
 const form = ref(null)
@@ -118,7 +119,7 @@ const efetuarCompra = async () => {
         id_conta: 1
       }
 
-      const response = await axios.post(`http://127.0.0.1:5000/planos/pagamento`, body, {
+      const response = await axios.post(API_ENDPOINTS.PAGAMENTO, body, {
         headers: {
           'Content-Type': 'application/json'
         }

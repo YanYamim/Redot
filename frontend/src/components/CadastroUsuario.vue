@@ -113,6 +113,7 @@
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { API_ENDPOINTS } from '@/config/api'
 
 const router = useRouter()
 const form = ref(null)
@@ -168,7 +169,7 @@ const salvarUsuario = async () => {
   }
 
   try {
-    await axios.post(`http://127.0.0.1:5000/usuario/cadastro`, body)
+    await axios.post(API_ENDPOINTS.CADASTRO, body)
     router.push('/login/')
   } catch (error) {
     console.error('Erro ao cadastrar:', error)

@@ -55,6 +55,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import { API_ENDPOINTS } from '@/config/api'
 
 const palavraPesquisa = ref('');
 const resultados = ref([]);
@@ -102,7 +103,7 @@ const buscarResultado = async () => {
   resultadosCarregados.value = false;
 
   try {
-    const response = await fetch('/radar', {
+    const response = await fetch(API_ENDPOINTS.RADAR, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nome_perfil: palavraPesquisa.value })
@@ -130,7 +131,7 @@ const buscarResultadosPeriodicamente = async () => {
     tentativas++;
     
     try {
-      const response = await fetch('/radar/resultados', {
+      const response = await fetch(API_ENDPOINTS.RADAR_RESULTADOS, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nome_perfil: palavraPesquisa.value })
