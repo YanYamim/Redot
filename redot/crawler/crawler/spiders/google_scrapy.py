@@ -2,8 +2,7 @@ import scrapy
 import django
 from django.apps import apps
 import urllib.parse
-
-from core.service.salvar_pesquisa_svc import salvar_pesquisa
+from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa
 
 if not apps.ready:
     django.setup()
@@ -40,11 +39,12 @@ class GoogleSpider(scrapy.Spider):
             return
 
         resultados_salvos = 0
-        for resultado in resultados[:3]:  
+        for resultado in resultados[:3]:  # Limita a 3 resultados
             title = resultado.css('h3::text, [role="heading"] span::text').get()
             url = resultado.css('a::attr(href)').get()
 
             if title and url:
+                # Processa a URL do Google
                 if url.startswith('/url?'):
                     parsed_url = urllib.parse.urlparse(url)
                     query_params = urllib.parse.parse_qs(parsed_url.query)

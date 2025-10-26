@@ -1,6 +1,6 @@
 from datetime import date, timedelta
 from django.db import transaction
-from models import Plano, TipoPlano
+from ..models import Plano, TipoPlano
 import traceback
 
 def assinar_plano(data):
@@ -34,6 +34,6 @@ def assinar_plano(data):
 
             return nova_assinatura.to_dict(), 200
     
-    except Exception as e:
+    except Exception:
         print("Erro ao assinar plano:", traceback.format_exc())
         return {"error": "Erro interno do servidor"}, 500

@@ -1,8 +1,7 @@
 import scrapy
 import django
 from django.apps import apps
-
-from core.service.salvar_pesquisa_svc import salvar_pesquisa
+from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa
 
 if not apps.ready:
     django.setup()

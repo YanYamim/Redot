@@ -3,13 +3,12 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
 
-# Importações dos serviços (ajuste conforme sua estrutura)
-from service.assinar_plano_svc import assinar_plano
-from service.cadastrar_usuario_svc import cadastrar_usuario
-from service.autenticar_usuario_svc import login_usuario
-from service.salvar_pesquisa_svc import buscar_resultados_bd
-from crawler.crawler.run_crawler import executar_spiders
-from core.cron import pesquisa_atual
+from .service.assinar_plano_svc import assinar_plano
+from .service.cadastrar_usuario_svc import cadastrar_usuario
+from .service.autenticar_usuario_svc import login_usuario
+from .service.salvar_pesquisa_svc import buscar_resultados_bd
+from ..crawler.crawler.run_crawler import executar_spiders
+from ..core.cron import pesquisa_atual
 
 status_cron_data = {}
 

@@ -1,6 +1,6 @@
 from datetime import date
 from django.db import transaction
-from models import Conta
+from ..models import Conta
 import traceback
 
 def cadastrar_conta(usuario, data):
@@ -16,6 +16,6 @@ def cadastrar_conta(usuario, data):
             nova_conta.save()
 
             return nova_conta
-    except Exception as e:
+    except Exception:
         print("Erro ao cadastrar conta:", traceback.format_exc())
         return None

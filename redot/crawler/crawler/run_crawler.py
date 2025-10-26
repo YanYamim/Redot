@@ -1,56 +1,62 @@
-import crochet
-crochet.setup()
-
-from scrapy.crawler import CrawlerRunner
+from scrapy.crawler import CrawlerProcess
 from scrapy.settings import Settings
 from importlib import import_module
-from twisted.internet import defer
-from crawler.crawler.spiders.google_scrapy import GoogleSpider
-from crawler.crawler.spiders.facebook_scrapy import FacebookSpider
-from crawler.crawler.spiders.instagram_scrapy import InstagramSpider
+from ..crawler.spiders.google_scrapy import GoogleSpider
+from ..crawler.spiders.facebook_scrapy import FacebookSpider
+from ..crawler.spiders.instagram_scrapy import InstagramSpider
 import django
 from django.apps import apps
+import threading
 
-@crochet.run_in_reactor
 def _crawl_all(nome_perfil):
     """
-    Executa todos os spiders em paralelo usando as configurações existentes
+    Executa todos os spiders em sequência usando CrawlerProcess
     """
+    # Configura o Django para poder usar os models
     if not apps.ready:
         django.setup()
     
+    # Usa as configurações existentes do seu settings.py
     settings_module = import_module('crawler.crawler.settings')
-    settings: Settings = Settings()
+    settings = Settings()
     settings.setmodule(settings_module, priority='project')
     
-    runner = CrawlerRunner(settings)
+    # Configurações adicionais para executar em sequência
+    settings.set('CONCURRENT_REQUESTS', 1)
+    settings.set('CONCURRENT_REQUESTS_PER_DOMAIN', 1)
+    settings.set('DOWNLOAD_DELAY', 2)
     
-    deferred_crawls = [
-        runner.crawl(FacebookSpider, nome_perfil=nome_perfil),
-        runner.crawl(InstagramSpider, nome_perfil=nome_perfil),
-        runner.crawl(GoogleSpider, nome_perfil=nome_perfil),
-    ]
-    return defer.DeferredList(deferred_crawls, fireOnOneErrback=False, consumeErrors=False)
+    process = CrawlerProcess(settings)
+    
+    # Executa os spiders em sequência
+    process.crawl(FacebookSpider, nome_perfil=nome_perfil)
+    process.crawl(InstagramSpider, nome_perfil=nome_perfil)
+    process.crawl(GoogleSpider, nome_perfil=nome_perfil)
+    
+    # Inicia o crawling (bloqueante)
+    process.start()
+    
+    return {"status": "completed", "spiders": 3}
 
 def executar_spiders(nome_perfil):
     """
-    Função principal para executar todos os spiders
+    Função principal para executar todos os spiders em uma thread separada
     """
+    # Garante que o Django está configurado
     if not apps.ready:
         django.setup()
     
-    eventual = _crawl_all(nome_perfil)
-    results = eventual.wait(timeout=1800) 
-
-    failures = []
-    for succeeded, payload in results:
-        if not succeeded:
-            try:
-                failures.append(str(payload.value))
-            except Exception:
-                failures.append(repr(payload))
-
-    if failures:
-        raise Exception("; ".join(failures))
-
-    return {"result": "ok", "perfil": nome_perfil, "spiders_executados": 3}
+    # Executa em uma thread separada para não bloquear
+    def run_crawlers():
+        try:
+            return _crawl_all(nome_perfil)
+        except Exception as e:
+            return {"status": "error", "error": str(e)}
+    
+    # Inicia o crawling em uma thread separada
+    thread = threading.Thread(target=run_crawlers)
+    thread.daemon = True
+    thread.start()
+    
+    # Retorna imediatamente enquanto o crawling roda em background
+    return {"result": "started", "perfil": nome_perfil, "spiders_executados": 3, "status": "running_in_background"}

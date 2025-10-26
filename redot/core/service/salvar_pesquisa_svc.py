@@ -1,5 +1,5 @@
 from django.db import transaction
-from models import Pesquisa
+from ..models import Pesquisa
 import traceback
 
 def salvar_pesquisa(data):

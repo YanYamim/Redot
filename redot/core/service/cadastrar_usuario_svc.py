@@ -1,8 +1,8 @@
 from django.db import transaction
 import re
 import traceback
-from models import Usuario
-from service.cadastrar_conta_svc import cadastrar_conta
+from ..models import Usuario
+from .cadastrar_conta_svc import cadastrar_conta
 
 def cadastrar_usuario(data):
     try:
