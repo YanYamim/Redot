@@ -98,14 +98,13 @@ DATABASES = {
 
 # Configurações do CORS
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Vite dev server
+    "http://localhost:5173", 
     "http://127.0.0.1:5173",
-    "http://localhost:3000",  # Alternativa
+    "http://localhost:3000", 
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
-# Configurações do django-crontab
 CRONJOBS = [
     ('* * * * *', 'redot.cron.crawl_minutalmente', '>> /tmp/cron_minutal.log 2>&1'),
     
@@ -116,7 +115,6 @@ CRONJOBS = [
     ('0 2 1 * *', 'redot.cron.crawl_mensalmente', '>> /tmp/cron_mensal.log 2>&1'),
 ]
 
-# Opcional: Configurações de logging para o cron
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
