@@ -16,7 +16,20 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from core import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # Rotas de assinatura
+    path('planos/pagamento', views.plano_assinado, name='plano_assinado'),
+    
+    # Rotas de radar/crawler
+    path('radar', views.rota_crawler, name='rota_crawler'),
+    path('radar/resultados', views.obter_resultados, name='obter_resultados'),
+    path('radar/status', views.status_cron, name='status_cron'),
+    
+    # Rotas de usuário
+    path('usuario/cadastro', views.novo_usuario, name='novo_usuario'),
+    path('login', views.autenticacao, name='autenticacao'),
 ]

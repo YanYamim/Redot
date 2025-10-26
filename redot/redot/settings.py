@@ -79,6 +79,37 @@ DATABASES = {
     }
 }
 
+# Configurações do django-crontab
+CRONJOBS = [
+    ('* * * * *', 'redot.cron.crawl_minutalmente', '>> /tmp/cron_minutal.log 2>&1'),
+    
+    ('0 0 * * *', 'redot.cron.crawl_diariamente', '>> /tmp/cron_diario.log 2>&1'),
+    
+    ('0 0 * * MON', 'redot.cron.crawl_semanalmente', '>> /tmp/cron_semanal.log 2>&1'),
+
+    ('0 2 1 * *', 'redot.cron.crawl_mensalmente', '>> /tmp/cron_mensal.log 2>&1'),
+]
+
+# Opcional: Configurações de logging para o cron
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'cron_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': '/tmp/django_cron.log',
+        },
+    },
+    'loggers': {
+        'cron': {
+            'handlers': ['cron_file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
