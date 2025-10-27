@@ -1,12 +1,12 @@
 from django.db import transaction
 import re
 import traceback
-from ..models import Usuario
+from ...accounts.models import User
 from .cadastrar_conta_svc import cadastrar_conta
 
 def cadastrar_usuario(data):
     try:
-        if Usuario.objects.filter(email=data['email']).exists():
+        if User.objects.filter(email=data['email']).exists():
             return {'error': 'Email já cadastrado'}, 400
 
         if data['tipo'] == 'F':
@@ -15,7 +15,7 @@ def cadastrar_usuario(data):
             identificacao = re.sub(r'\D', '', data.get('cnpj', ''))
 
         with transaction.atomic():
-            novo_usuario = Usuario(
+            novo_usuario = User(
                 tipo=data['tipo'],
                 email=data['email'],
                 rg=data.get('rg'),

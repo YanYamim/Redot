@@ -9,10 +9,10 @@ def cadastrar_conta(usuario, data):
             nova_conta = Conta(
                 id_usuario=usuario,
                 login=data['email'],
-                senha=data['senha'],
                 data_criacao=date.today()
             )
 
+            nova_conta.set_senha(data['senha'])
             nova_conta.save()
 
             return nova_conta
