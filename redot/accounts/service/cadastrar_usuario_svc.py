@@ -2,7 +2,7 @@ from django.db import transaction
 import re
 import traceback
 from ...accounts.models import User
-from .cadastrar_conta_svc import cadastrar_conta
+from cadastrar_conta_svc import cadastrar_conta
 
 def cadastrar_usuario(data):
     try:

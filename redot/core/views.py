@@ -4,8 +4,6 @@ from django.views.decorators.http import require_http_methods
 import json
 
 from .service.assinar_plano_svc import assinar_plano
-from .service.cadastrar_usuario_svc import cadastrar_usuario
-from .service.autenticar_usuario_svc import login_usuario, obter_usuario_por_token
 from .service.salvar_pesquisa_svc import buscar_resultados_bd
 from ..crawler.crawler.run_crawler import executar_spiders
 from ..core.cron import pesquisa_atual
@@ -86,109 +84,6 @@ def status_cron(request):
         from .cron import obter_resultados
         resultados = obter_resultados()
         return JsonResponse(resultados)
-    except Exception as e:
-        return JsonResponse({"erro": str(e)}, status=500)
-    
-@csrf_exempt
-@require_http_methods(["POST"])
-def autenticacao(request):
-    """
-    View para autenticação de usuário
-    """
-    try:
-        data = json.loads(request.body)
-        email = data.get('email')
-        senha = data.get('senha')
-        
-        if not email or not senha:
-            return JsonResponse(
-                {'status': 'error', 'message': 'Email e senha são obrigatórios'}, 
-                status=400
-            )
-        
-        resultado, status_code = login_usuario(email, senha)
-        
-        return JsonResponse(resultado, status=status_code)
-        
-    except json.JSONDecodeError:
-        return JsonResponse(
-            {'status': 'error', 'message': 'JSON inválido'}, 
-            status=400
-        )
-    except Exception as e:
-        return JsonResponse(
-            {'status': 'error', 'message': 'Erro interno do servidor'}, 
-            status=500
-        )
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def novo_usuario(request):
-    """
-    View para cadastro de novo usuário
-    """
-    try:
-        data = json.loads(request.body)
-        
-        resultado, status_code = cadastrar_usuario(data)
-        
-        return JsonResponse(resultado, status=status_code, safe=False)
-        
-    except json.JSONDecodeError:
-        return JsonResponse(
-            {'error': 'JSON inválido'}, 
-            status=400
-        )
-    except Exception as e:
-        return JsonResponse(
-            {'error': 'Erro interno do servidor'}, 
-            status=500
-        )
-    
-@csrf_exempt
-@require_http_methods(["GET"])
-def perfil_usuario(request):
-    """
-    Exemplo de view que requer autenticação
-    """
-    auth_header = request.META.get('HTTP_AUTHORIZATION', '')
-    
-    if not auth_header.startswith('Bearer '):
-        return JsonResponse({'error': 'Token não fornecido'}, status=401)
-    
-    token = auth_header.split(' ')[1]
-    usuario, error = obter_usuario_por_token(token)
-    
-    if error:
-        return JsonResponse(error, status=401)
-    
-    return JsonResponse({
-        'status': 'success',
-        'usuario': usuario.to_dict()
-    })
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def autenticacao(request):
-    """
-    View para autenticação de usuário
-    """
-    try:
-        data = json.loads(request.body)
-        email = data.get('email')
-        senha = data.get('senha')
-        
-        if not email or not senha:
-            return JsonResponse({"erro": "Email e senha são obrigatórios"}, status=400)
-        
-        response, status_code = login_usuario(email, senha)
-        
-        if isinstance(response, dict):
-            return JsonResponse(response, status=status_code)
-        else:
-            return response
-    except json.JSONDecodeError:
-        return JsonResponse({"erro": "JSON inválido"}, status=400)
     except Exception as e:
         return JsonResponse({"erro": str(e)}, status=500)
 

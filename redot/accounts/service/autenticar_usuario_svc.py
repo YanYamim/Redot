@@ -1,8 +1,7 @@
 import jwt
 from datetime import datetime, timedelta
 from django.conf import settings
-from django.http import HttpResponse
-from ...accounts.models import User, Conta
+from models import User, Conta
 import traceback
 
 def gerar_token_jwt(conta_id, usuario_id):
