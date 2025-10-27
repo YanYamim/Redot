@@ -1,4 +1,5 @@
 from django.db import models
+from ..accounts.models import Conta
 
 class Estado(models.Model):
     class Meta:
@@ -17,78 +18,6 @@ class Estado(models.Model):
 
     def __str__(self):
         return f"{self.nome_estado} ({self.sigla_estado})"
-
-
-class Usuario(models.Model):
-    TIPO_CHOICES = [
-        ('F', 'Física'),
-        ('J', 'Jurídica'),
-    ]
-
-    class Meta:
-        db_table = 'usuario'
-
-    id_usuario = models.AutoField(primary_key=True)
-    tipo = models.CharField(max_length=1, choices=TIPO_CHOICES)
-    rg = models.CharField(max_length=10, null=True, blank=True)
-    email = models.CharField(max_length=100, unique=True)
-    telefone = models.CharField(max_length=20, null=True, blank=True)
-    celular = models.CharField(max_length=20, null=True, blank=True)
-    cep = models.CharField(max_length=8, null=True, blank=True)
-    n = models.IntegerField(null=True, blank=True)  #
-    complemento = models.CharField(max_length=20, null=True, blank=True)
-    razao_social = models.CharField(max_length=60, null=True, blank=True)
-    cnpj = models.CharField(max_length=14, unique=True, null=True, blank=True)
-    nome_usuario = models.CharField(max_length=60, null=True, blank=True)
-    cpf = models.CharField(max_length=11, unique=True, null=True, blank=True)
-    id_role = models.IntegerField(default=1)
-
-    def to_dict(self):
-        return {
-            'id_usuario': self.id_usuario,
-            'tipo': self.tipo,
-            'rg': self.rg,
-            'email': self.email,
-            'telefone': self.telefone,
-            'celular': self.celular,
-            'cep': self.cep,
-            'n': self.n,
-            'complemento': self.complemento,
-            'razao_social': self.razao_social,
-            'cnpj': self.cnpj,
-            'nome_usuario': self.nome_usuario,
-            'cpf': self.cpf,
-            'id_role': self.id_role
-        }
-
-    def __str__(self):
-        if self.tipo == 'F':
-            return f"{self.nome_usuario} ({self.email})"
-        else:
-            return f"{self.razao_social} ({self.email})"
-
-
-class Conta(models.Model):
-    class Meta:
-        db_table = 'conta'
-
-    id_conta = models.AutoField(primary_key=True)
-    id_usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, db_column='id_usuario')
-    login = models.CharField(max_length=30, unique=True)
-    senha = models.CharField(max_length=60)
-    data_criacao = models.DateField()
-
-    def __str__(self):
-        return f"Conta {self.id_conta} - {self.login}"
-
-    def to_dict(self):
-        return {
-            'id_conta': self.id_conta,
-            'id_usuario': self.id_usuario.id_usuario,
-            'login': self.login,
-            'data_criacao': self.data_criacao.isoformat() if self.data_criacao else None
-        }
-
 
 class TipoPlano(models.Model):
     class Meta:
