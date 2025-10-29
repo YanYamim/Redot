@@ -21,36 +21,43 @@ services:
       timeout: 10s
       retries: 5
 
-  # Backend Flask
+  # Backend Django
   backend:
     build:
-      context: ./backend
+      context: .
       dockerfile: Dockerfile.prod
     container_name: redot-backend
     restart: always
     environment:
-      FLASK_APP: app.py
-      FLASK_ENV: production
-      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-redot}
-      SQLALCHEMY_DATABASE_URI: postgresql+psycopg2://${DB_USER:-postgres}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-redot}
+      DJANGO_SETTINGS_MODULE: redot.redot.settings
       SECRET_KEY: ${SECRET_KEY}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-redot}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD}
       CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      CSRF_TRUSTED_ORIGINS: ${CSRF_TRUSTED_ORIGINS:-http://localhost,http://127.0.0.1}
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - redot-network
-    volumes:
-      - ./backend/logs:/app/logs
-    command: gunicorn --bind 0.0.0.0:5000 --workers 4 --threads 2 --timeout 120 app:app
+    # Rodar migrações antes do Gunicorn
+    command: >-
+      sh -c "python manage.py migrate && 
+             gunicorn --bind 0.0.0.0:8000 --workers 4 --threads 2 --timeout 120 redot.redot.wsgi:application"
 
-  # Frontend Vue + Nginx
+  # Frontend Vue + Nginx (estático)
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://backend:5000}
+        # Preferir roteamento via Nginx para evitar CORS
+        VITE_API_URL: ${VITE_API_URL:-/api}
     container_name: redot-frontend
     restart: always
     depends_on:

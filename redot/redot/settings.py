@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
 from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -22,12 +23,12 @@ AUTH_USER_MODEL = 'accounts.User'
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-o1^*b_ywvcb!3&n(dqe0yrjz(ysv#rx!kjt0(a3c*lyi=wru2m'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-o1^*b_ywvcb!3&n(dqe0yrjz(ysv#rx!kjt0(a3c*lyi=wru2m')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [h for h in os.getenv('ALLOWED_HOSTS', '*').split(',') if h]
 
 # Internal IPs for debug toolbar
 INTERNAL_IPS = [
@@ -88,19 +89,21 @@ WSGI_APPLICATION = 'redot.redot.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'redot',          
-        'USER': 'postgres',       
-        'PASSWORD': '1234',   
-        'HOST': 'localhost',  
-        'PORT': '15432',       
+        'NAME': os.getenv('DB_NAME', 'redot'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', '1234'),
+        'HOST': os.getenv('DB_HOST', '127.0.0.1'),
+        'PORT': os.getenv('DB_PORT', '15432'),
     }
 }
 
 # Configurações do CORS
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173", 
-    "http://127.0.0.1:5173",
-    "http://localhost:3000", 
+    o for o in os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',') if o
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    o for o in os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost,http://127.0.0.1').split(',') if o
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -173,6 +176,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
