@@ -29,7 +29,7 @@
         </v-row>
 
         <v-row justify="center" class="mt-4">
-          <v-btn :disabled="!valid" color="green" @click="acessarUsuario">
+          <v-btn :disabled="!valid || isLoading" :loading="isLoading" color="green" @click="acessarUsuario">
             Entrar
           </v-btn>
         </v-row>
@@ -79,6 +79,7 @@ const acessarUsuario = async () => {
   if(!valid) return
 
   try {
+    isLoading.value = true
     errorMessage.value = ''
 
     const response = await axios.post(API_ENDPOINTS.LOGIN, {
@@ -86,21 +87,33 @@ const acessarUsuario = async () => {
       senha: state.senha
     })
 
-    if(!response.data.status === 'success') {
-      errorMessage.value = response.data.message || 'Credenciais inválidas'
+    const data = response.data || {}
+
+    if (!data.token) {
+      errorMessage.value = data.erro || data.error || data.message || 'Credenciais inválidas'
+      return
     }
 
-    localStorage.setItem('authToken', 'authenticated')
+    localStorage.setItem('authToken', data.token)
+    if (data.usuario) {
+      localStorage.setItem('usuario', JSON.stringify(data.usuario))
+    }
+    if (data.conta_id !== undefined && data.conta_id !== null) {
+      localStorage.setItem('conta_id', String(data.conta_id))
+    }
+
     router.push('/Radar')
-    window.location.reload()
 
   } catch (error) {
     if (error.response) {
-      errorMessage.value = error.response.data.message || 'Erro na autenticação'
+      const resp = error.response.data || {}
+      errorMessage.value = resp.erro || resp.error || resp.message || 'Erro na autenticação'
     } else {
       errorMessage.value = 'Não foi possível conectar ao servidor'
     }
     console.error('Erro na autenticação:', error)
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
