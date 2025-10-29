@@ -1,7 +1,7 @@
 import jwt
 from datetime import datetime, timedelta
 from django.conf import settings
-from models import User, Conta
+from ..models import User, Conta
 import traceback
 
 def gerar_token_jwt(conta_id, usuario_id):
@@ -78,7 +78,7 @@ def obter_usuario_por_token(token):
         payload = verificar_jwt_token(token)
 
         if 'error' in payload:
-            return None, payload['error']
+            return None, payload
 
         usuario_id = payload.get('usuario_id')
         conta_id = payload.get('conta_id')

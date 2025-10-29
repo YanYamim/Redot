@@ -1,18 +1,15 @@
-"""
-Testes para o serviço de assinatura de planos
-"""
 from django.test import TestCase
 from datetime import date, timedelta
 from redot.core.service.assinar_plano_svc import assinar_plano
-from redot.core.models import Usuario, Conta, TipoPlano, Plano
-
+from redot.core.models import TipoPlano, Plano
+from redot.accounts.models import User, Conta
 
 class AssinarPlanoTestCase(TestCase):
     """Testes para assinatura de planos"""
 
     def setUp(self):
         """Configuração inicial dos testes"""
-        self.usuario = Usuario.objects.create(
+        self.usuario = User.objects.create(
             tipo='F',
             email='teste@email.com',
             nome_usuario='João Silva',
@@ -69,7 +66,6 @@ class AssinarPlanoTestCase(TestCase):
         self.assertEqual(resultado['id_tipo_plano'], self.plano_anual.id_tipo_plano)
         self.assertTrue(resultado['ativa'])
 
-        # Verifica as datas
         data_inicio = date.fromisoformat(resultado['data_inicio'])
         data_fim = date.fromisoformat(resultado['data_fim'])
         

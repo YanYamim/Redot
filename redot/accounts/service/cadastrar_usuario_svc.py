@@ -2,7 +2,7 @@ from django.db import transaction
 import re
 import traceback
 from ...accounts.models import User
-from cadastrar_conta_svc import cadastrar_conta
+from ..service.cadastrar_conta_svc import cadastrar_conta
 
 def cadastrar_usuario(data):
     try:
@@ -18,6 +18,7 @@ def cadastrar_usuario(data):
             novo_usuario = User(
                 tipo=data['tipo'],
                 email=data['email'],
+                username=data['email'],  # Usar email como username padrão
                 rg=data.get('rg'),
                 telefone=data.get('telefone'),
                 celular=data.get('celular'),

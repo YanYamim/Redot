@@ -59,7 +59,7 @@ class Conta(models.Model):
         blank=True,
     )
     login = models.CharField(max_length=30, unique=True)
-    senha = models.CharField(max_length=60, null=True, blank=True)
+    senha = models.CharField(max_length=128, null=True, blank=True)
     data_criacao = models.DateField()
 
     def set_senha(self, raw_password):
