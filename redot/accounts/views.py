@@ -3,8 +3,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 import json
 
-from core.service.cadastrar_usuario_svc import cadastrar_usuario
-from core.service.autenticar_usuario_svc import login_usuario, obter_usuario_por_token
+from ..accounts.service.cadastrar_usuario_svc import cadastrar_usuario
+from ..accounts.service.autenticar_usuario_svc import login_usuario, obter_usuario_por_token
 
 @csrf_exempt
 @require_http_methods(["POST"])
