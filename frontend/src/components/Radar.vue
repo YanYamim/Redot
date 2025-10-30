@@ -29,8 +29,7 @@
         :headers="headers"
         :items="resultados"
         :items-length="totalResultados"
-        :loading="loading"
-        item-value="titulo"
+        :loading="loading || loadingResults"
         class="radar-table elevation-5"
       >
         <template v-slot:item.fonte="{ item }">
@@ -63,6 +62,7 @@ const itensPorPagina = ref(10);
 const totalResultados = ref(0);
 const loading = ref(false);
 const loadingResults = ref(false);
+const mostrarUrls = ref(true);
 const mensagemBackend = ref('');
 const resultadosCarregados = ref(false);
 
@@ -72,9 +72,9 @@ const rules = [
 ];
 
 const headers = [
-  { title: 'Título', key: 'titulo' },
-  { title: 'Fonte', key: 'fonte' },
-  { title: 'Link', key: 'url' }
+  { title: 'Título', value: 'titulo' },
+  { title: 'Fonte', value: 'fonte' },
+  { title: 'Link', value: 'url' }
 ];
 
 const formatarFonte = (fonte) => {

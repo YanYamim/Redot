@@ -70,14 +70,22 @@ class ProxyMiddleware:
             # Use HTTP scheme for proxy. HTTP proxies support tunneling HTTPS targets via CONNECT.
             proxy_url = f'http://{auth_user}:{proxy_pass}@{proxy_server}'
 
+        # Log proxy configuration for debugging
+        if proxy_url:
+            print(f"[ProxyMiddleware.from_crawler] proxy_url configured: {proxy_url}")
+        else:
+            print("[ProxyMiddleware.from_crawler] no proxy configured")
+
         return cls(proxy_url=proxy_url)
 
     def process_request(self, request, spider):
         # Respect an explicitly set proxy on the request
         if 'proxy' in request.meta and request.meta['proxy']:
+            print(f"[ProxyMiddleware] request already has proxy: {request.meta.get('proxy')} for {request.url}")
             return
 
         if self.proxy_url:
+            print(f"[ProxyMiddleware] setting proxy for {request.url} -> {self.proxy_url}")
             request.meta['proxy'] = self.proxy_url
 
 class CrawlerDownloaderMiddleware:

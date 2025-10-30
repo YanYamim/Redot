@@ -10,8 +10,8 @@
 BOT_NAME = "crawler"
 
 # Correct package paths for this project structure
-SPIDER_MODULES = ["crawler.crawler.spiders"]
-NEWSPIDER_MODULE = "crawler.crawler.spiders"
+SPIDER_MODULES = ["redot.crawler.crawler.spiders"]
+NEWSPIDER_MODULE = "redot.crawler.crawler.spiders"
 
 ADDONS = {}
 
@@ -55,7 +55,7 @@ DOWNLOAD_DELAY = 1
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-    'crawler.crawler.middlewares.ProxyMiddleware': 350,
+    'redot.crawler.crawler.middlewares.ProxyMiddleware': 350,
     'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 400,
 }
 

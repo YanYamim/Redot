@@ -98,9 +98,16 @@ DATABASES = {
 }
 
 # Configurações do CORS
+# CORS - por padrão permite Vite (5173) e portas comuns do dev (3000)
 CORS_ALLOWED_ORIGINS = [
-    o for o in os.getenv('CORS_ORIGINS', 'http://localhost:5173,http://127.0.0.1:5173').split(',') if o
+    o for o in os.getenv(
+        'CORS_ORIGINS',
+        'http://localhost:5173,http://127.0.0.1:5173,http://localhost:3000,http://127.0.0.1:3000'
+    ).split(',') if o
 ]
+
+# Para desenvolvimento, quando DEBUG=True, podemos liberar todos os origins para facilitar
+CORS_ALLOW_ALL_ORIGINS = DEBUG
 
 CSRF_TRUSTED_ORIGINS = [
     o for o in os.getenv('CSRF_TRUSTED_ORIGINS', 'http://localhost,http://127.0.0.1').split(',') if o
