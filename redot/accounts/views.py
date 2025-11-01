@@ -24,7 +24,7 @@ def novo_usuario(request):
             {'error': 'JSON inválido'}, 
             status=400
         )
-    except Exception as e:
+    except Exception:
         return JsonResponse(
             {'error': 'Erro interno do servidor'}, 
             status=500
@@ -56,7 +56,7 @@ def autenticacao(request):
             {'status': 'error', 'message': 'JSON inválido'}, 
             status=400
         )
-    except Exception as e:
+    except Exception:
         return JsonResponse(
             {'status': 'error', 'message': 'Erro interno do servidor'}, 
             status=500

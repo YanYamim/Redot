@@ -18,16 +18,10 @@ ADDONS = {}
 # Align Twisted reactor with Crochet's default (installed on Linux)
 TWISTED_REACTOR = "twisted.internet.epollreactor.EPollReactor"
 
-# Proxy configuration
-PROXY_USER = 'Mavi__fz8CY-country-US'
-PROXY_PASS = 'Xman2025Mavip=PB'
-PROXY_SERVER = 'dc.oxylabs.io:8000'
-
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = "crawler (+http://www.yourdomain.com)"
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = False
 
 # Concurrency and throttling settings
 #CONCURRENT_REQUESTS = 16
@@ -55,9 +49,15 @@ DOWNLOAD_DELAY = 1
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 DOWNLOADER_MIDDLEWARES = {
-    'redot.crawler.crawler.middlewares.ProxyMiddleware': 350,
+    'crawler.middlewares.ProxyMiddleware': 350,  
     'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 400,
+    'scrapy.downloadermiddlewares.retry.RetryMiddleware': 90,
 }
+
+# Proxy configuration
+PROXY_USER = 'Mavi__fz8CY-country-US'
+PROXY_PASS = 'Xman2025Mavip=PB'
+PROXY_SERVER = 'dc.oxylabs.io:8000'
 
 HTTP_PROXY = f'http://{PROXY_USER}:{PROXY_PASS}@{PROXY_SERVER}'
 HTTPS_PROXY = f'http://{PROXY_USER}:{PROXY_PASS}@{PROXY_SERVER}'
@@ -66,6 +66,11 @@ PROXIES = {
     'http': HTTP_PROXY,
     'https': HTTPS_PROXY,
 }
+
+ROBOTSTXT_OBEY = False
+COOKIES_ENABLED = False
+DOWNLOAD_TIMEOUT = 30
+RETRY_TIMES = 3
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html

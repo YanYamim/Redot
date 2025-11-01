@@ -67,7 +67,7 @@ def login_usuario(login, senha):
             'message': 'Login realizado com sucesso'
         }, 200
     
-    except Exception as e:
+    except Exception:
         print("Erro na autenticação:", traceback.format_exc())
         return {'error': 'Erro interno no servidor'}, 500
     
@@ -91,6 +91,6 @@ def obter_usuario_por_token(token):
 
         return usuario, None
     
-    except Exception as e:
+    except Exception:
         print("Erro ao obter usuário por token:", traceback.format_exc())
         return None, {'error': 'Erro ao validar token'}

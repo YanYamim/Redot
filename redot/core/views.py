@@ -43,8 +43,7 @@ def rota_crawler(request):
 
         executar_spiders(nome_perfil)
         return JsonResponse({"mensagem": f"Spiders executadas para o perfil '{nome_perfil}'"}, status=200)
-    except json.JSONDecodeError:
-        return JsonResponse({"erro": "JSON inválido"}, status=400)
+
     except Exception as e:
         return JsonResponse({"erro": str(e)}, status=500)
 
@@ -54,18 +53,17 @@ def obter_resultados(request):
     """
     View para obter resultados das pesquisas
     """
+    data = json.loads(request.body)
+    nome_perfil = data.get('nome_perfil')
+
+    if not nome_perfil:
+        return JsonResponse({"erro": "Parâmetro 'nome_perfil' é obrigatório"}, status=400)
+    
     try:
-        data = json.loads(request.body)
-        nome_perfil = data.get('nome_perfil')
-        
-        if not nome_perfil:
-            return JsonResponse({"erro": "Parâmetro 'nome_perfil' é obrigatório"}, status=400)
-        
+
         resultados = buscar_resultados_bd(nome_perfil)
         return JsonResponse(resultados, safe=False)
-            
-    except json.JSONDecodeError:
-        return JsonResponse({"erro": "JSON inválido"}, status=400)
+
     except Exception as e:
         return JsonResponse({
             "erro": str(e),

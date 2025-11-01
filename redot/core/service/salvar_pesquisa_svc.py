@@ -1,4 +1,3 @@
-from django.db import transaction
 from ..models import Pesquisa
 import traceback
 
@@ -7,18 +6,17 @@ def salvar_pesquisa(data):
     Salva os resultados da pesquisa no banco de dados
     """
     try:
-        with transaction.atomic():
-            resultado_valor = data.get('resultado') or data.get('nome_resultado')
-            
-            nova_pesquisa = Pesquisa(
-                nome_pesquisa=data['nome_pesquisa'],
-                resultado=resultado_valor,
-                fonte=data['fonte'],
-                url_resultado=data['url']
-            )
+        resultado_valor = data.get('resultado') or data.get('nome_resultado')
+        
+        nova_pesquisa = Pesquisa(
+            nome_pesquisa=data['nome_pesquisa'],
+            resultado=resultado_valor,
+            fonte=data['fonte'],
+            url_resultado=data['url']
+        )
 
-            nova_pesquisa.save()
-            return nova_pesquisa.to_dict(), 200
+        nova_pesquisa.save()
+        return nova_pesquisa.to_dict(), 200
 
     except Exception as e:
         print("Erro ao salvar a pesquisa:", traceback.format_exc())
