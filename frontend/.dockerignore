@@ -1,0 +1,26 @@
+# Node e cache
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
+.cache/
+dist/
+.tmp/
+*.log
+
+# Testes e configs locais
+coverage/
+.vscode/
+.idea/
+.env
+.env.*
+
+# Git e Docker
+.git/
+.gitignore
+Dockerfile*
+docker-compose.yml
+
+# Sistema
+.DS_Store
