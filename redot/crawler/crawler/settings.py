@@ -7,11 +7,26 @@
 #     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
+import os
+import sys
+import django
+from django.conf import settings as django_settings
+
+DJANGO_PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(DJANGO_PROJECT_PATH)
+
+try:
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'redot.settings')
+    if not django_settings.configured:
+        django.setup()
+        print("✅ Django configurado com sucesso no Scrapy!")
+except Exception as e:
+    print(f"⚠️  Aviso na configuração do Django: {e}")
+
 BOT_NAME = "crawler"
 
-# Correct package paths for this project structure
-SPIDER_MODULES = ["redot.crawler.crawler.spiders"]
-NEWSPIDER_MODULE = "redot.crawler.crawler.spiders"
+SPIDER_MODULES = ["crawler.spiders"]
+NEWSPIDER_MODULE = "crawler.spiders"
 
 ADDONS = {}
 
@@ -71,6 +86,18 @@ ROBOTSTXT_OBEY = False
 COOKIES_ENABLED = False
 DOWNLOAD_TIMEOUT = 30
 RETRY_TIMES = 3
+
+USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+
+# Headers adicionais para evitar bloqueios
+DEFAULT_REQUEST_HEADERS = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.5',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'DNT': '1',
+    'Connection': 'keep-alive',
+    'Upgrade-Insecure-Requests': '1',
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html

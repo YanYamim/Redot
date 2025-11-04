@@ -1,65 +1,82 @@
 import scrapy
-import django
-from django.apps import apps
-from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa
-
-if not apps.ready:
-    django.setup()
+import urllib.parse
 
 class GoogleSpider(scrapy.Spider):
     name = "google"
     allowed_domains = ["google.com"]
-
-    def __init__(self, nome_perfil='', app_context=None, **kwargs):
-        super().__init__(**kwargs)
+    
+    def __init__(self, nome_perfil='', *args, **kwargs):
+        super(GoogleSpider, self).__init__(*args, **kwargs)
         self.nome_perfil = nome_perfil
         self.start_urls = [f"https://www.google.com/search?q={nome_perfil}"]
-        self.app_context = app_context
+        self.logger.info(f"[GoogleSpider] Iniciada para: {nome_perfil}")
 
     def start_requests(self):
+        self.logger.info(f"[GoogleSpider] Iniciando requests para: {self.start_urls}")
         for url in self.start_urls:
             yield scrapy.Request(
-                url,
+                url=url,
+                callback=self.parse,
+                errback=self.errback,
                 headers={
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                },
-                callback=self.parse
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                }
             )
 
-    async def start(self):
-        async for req in super().start():
-            yield req
-
     def parse(self, response):
-        resultados = response.css('div.g')
+        self.logger.info(f"[GoogleSpider] Resposta recebida. Status: {response.status}")
+        
+        # Tente diferentes seletores do Google
+        resultados = response.css('div.g') or response.css('div.tF2Cxc') or response.css('[data-sokoban-container]')
+        self.logger.info(f"[GoogleSpider] Encontrados {len(resultados)} resultados")
 
         if not resultados:
-            self.logger.warning("Nenhum resultado encontrado. Pode ser bloqueio do Google.")
+            # Salva pelo menos a pesquisa mesmo sem resultados
+            data = {
+                'nome_pesquisa': self.nome_perfil,
+                'nome_resultado': f'Pesquisa Google: {self.nome_perfil}',
+                'fonte': 'google',
+                'url': response.url
+            }
+            
+            try:
+                from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa_thread
+                resultado, status = salvar_pesquisa_thread(data)
+                self.logger.info(f"[GoogleSpider] ✅ Pesquisa salva (sem resultados detalhados)")
+            except Exception as e:
+                self.logger.error(f"[GoogleSpider] ❌ Erro ao salvar pesquisa: {str(e)}")
+            return
 
-        for resultado in resultados:
-            title = resultado.css('h3::text').get()
-            url = resultado.css('a::attr(href)').get()
+        for i, resultado in enumerate(resultados[:3]):
+            title = resultado.css('h3::text, [role="heading"]::text').get()
+            link = resultado.css('a::attr(href)').get()
 
-            if title and url:
+            if title and link:
+                if link.startswith('/url?'):
+                    parsed_url = urllib.parse.urlparse(link)
+                    query_params = urllib.parse.parse_qs(parsed_url.query)
+                    actual_url = query_params.get('q', [link])[0]
+                else:
+                    actual_url = link
+
                 data = {
                     'nome_pesquisa': self.nome_perfil,
                     'nome_resultado': title.strip(),
                     'fonte': 'google',
-                    'url': response.urljoin(url)
+                    'url': response.urljoin(actual_url)
                 }
 
                 try:
-                    self.logger.debug('GoogleSpider: encontrado item para %s: %s', self.nome_perfil, data.get('nome_resultado'))
-                    if self.app_context:
-                        with self.app_context():
-                            salvar_pesquisa(data)
+                    from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa_thread
+                    resultado, status = salvar_pesquisa_thread(data)
+                    
+                    if status == 200:
+                        self.logger.info(f"[GoogleSpider] ✅ Resultado {i+1} sendo salvo em thread")
                     else:
-                        salvar_pesquisa(data)
-                    self.logger.info('GoogleSpider: item salvo para %s', self.nome_perfil)
+                        self.logger.error(f"[GoogleSpider] ❌ Erro ao salvar: {resultado}")
+                        
                 except Exception as e:
-                    # Garantir que qualquer erro de persistência seja logado no stdout do crawler
-                    self.logger.exception('GoogleSpider: erro ao salvar resultado para %s: %s', self.nome_perfil, e)
+                    self.logger.error(f"[GoogleSpider] ❌ Exceção: {str(e)}")
 
-            else:
-                self.logger.warning("Não foi possível extrair o título. A página pode estar protegida.")
+    def errback(self, failure):
+        self.logger.error(f"[GoogleSpider] ❌ Erro na requisição: {failure.value}")

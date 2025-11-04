@@ -1,40 +1,34 @@
 import scrapy
-import django
-from django.apps import apps
-from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa
-
-if not apps.ready:
-    django.setup()
 
 class InstagramSpider(scrapy.Spider):
     name = "instagram"
     allowed_domains = ["instagram.com"]
-
-    def __init__(self, nome_perfil='', app_context=None, **kwargs):
-        super().__init__(**kwargs)
+    
+    def __init__(self, nome_perfil='', *args, **kwargs):
+        super(InstagramSpider, self).__init__(*args, **kwargs)
         self.nome_perfil = nome_perfil
         self.start_urls = [f"https://www.instagram.com/{nome_perfil}/"]
-        self.app_context = app_context
+        self.logger.info(f"[InstagramSpider] Iniciada para: {nome_perfil}")
 
     def start_requests(self):
+        self.logger.info(f"[InstagramSpider] Iniciando requests para: {self.start_urls}")
         for url in self.start_urls:
             yield scrapy.Request(
-                url,
+                url=url,
+                callback=self.parse,
+                errback=self.errback,
                 headers={
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                    'Accept-Language': 'en-US,en;q=0.9',
-                },
-                callback=self.parse
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                }
             )
 
-    async def start(self):
-        async for req in super().start():
-            yield req
-
     def parse(self, response):
+        self.logger.info(f"[InstagramSpider] Resposta recebida. Status: {response.status}")
+        
         title = response.css('title::text').get()
+        self.logger.info(f"[InstagramSpider] Título extraído: {title}")
 
-        if title and "instagram" in title.lower():
+        if title:
             data = {
                 'nome_pesquisa': self.nome_perfil,
                 'resultado': title.strip(),
@@ -42,11 +36,20 @@ class InstagramSpider(scrapy.Spider):
                 'url': response.url
             }
 
-            if self.app_context:
-                with self.app_context():
-                    salvar_pesquisa(data)
-            else:
-                salvar_pesquisa(data)
+            self.logger.info(f"[InstagramSpider] Tentando salvar dados...")
+            
+            try:
+                # Use a versão com thread
+                from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa_thread
+                resultado, status = salvar_pesquisa_thread(data)
+                
+                if status == 200:
+                    self.logger.info(f"[InstagramSpider] ✅ Processo de salvamento iniciado em thread")
+                else:
+                    self.logger.error(f"[InstagramSpider] ❌ Erro ao iniciar salvamento: {resultado}")
+                    
+            except Exception as e:
+                self.logger.error(f"[InstagramSpider] ❌ Exceção ao salvar: {str(e)}")
 
-        else:
-            self.logger.warning("Não foi possível extrair o título. A página pode estar protegida.")
+    def errback(self, failure):
+        self.logger.error(f"[InstagramSpider] ❌ Erro na requisição: {failure.value}")
