@@ -36,20 +36,19 @@ class InstagramSpider(scrapy.Spider):
                 'url': response.url
             }
 
-            self.logger.info(f"[InstagramSpider] Tentando salvar dados...")
+            self.logger.info("[InstagramSpider] Tentando salvar dados...")
             
             try:
-                # Use a versão com thread
                 from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa_thread
                 resultado, status = salvar_pesquisa_thread(data)
                 
                 if status == 200:
-                    self.logger.info(f"[InstagramSpider] ✅ Processo de salvamento iniciado em thread")
+                    self.logger.info("[InstagramSpider] Processo de salvamento iniciado em thread")
                 else:
-                    self.logger.error(f"[InstagramSpider] ❌ Erro ao iniciar salvamento: {resultado}")
+                    self.logger.error(f"[InstagramSpider] Erro ao iniciar salvamento: {resultado}")
                     
             except Exception as e:
-                self.logger.error(f"[InstagramSpider] ❌ Exceção ao salvar: {str(e)}")
+                self.logger.error(f"[InstagramSpider] Exceção ao salvar: {str(e)}")
 
     def errback(self, failure):
-        self.logger.error(f"[InstagramSpider] ❌ Erro na requisição: {failure.value}")
+        self.logger.error(f"[InstagramSpider] Erro na requisição: {failure.value}")

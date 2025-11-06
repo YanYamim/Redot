@@ -26,12 +26,10 @@ class GoogleSpider(scrapy.Spider):
     def parse(self, response):
         self.logger.info(f"[GoogleSpider] Resposta recebida. Status: {response.status}")
         
-        # Tente diferentes seletores do Google
         resultados = response.css('div.g') or response.css('div.tF2Cxc') or response.css('[data-sokoban-container]')
         self.logger.info(f"[GoogleSpider] Encontrados {len(resultados)} resultados")
 
         if not resultados:
-            # Salva pelo menos a pesquisa mesmo sem resultados
             data = {
                 'nome_pesquisa': self.nome_perfil,
                 'nome_resultado': f'Pesquisa Google: {self.nome_perfil}',
@@ -42,9 +40,9 @@ class GoogleSpider(scrapy.Spider):
             try:
                 from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa_thread
                 resultado, status = salvar_pesquisa_thread(data)
-                self.logger.info(f"[GoogleSpider] ✅ Pesquisa salva (sem resultados detalhados)")
+                self.logger.info("[GoogleSpider] Pesquisa salva (sem resultados detalhados)")
             except Exception as e:
-                self.logger.error(f"[GoogleSpider] ❌ Erro ao salvar pesquisa: {str(e)}")
+                self.logger.error(f"[GoogleSpider] Erro ao salvar pesquisa: {str(e)}")
             return
 
         for i, resultado in enumerate(resultados[:3]):
@@ -71,12 +69,12 @@ class GoogleSpider(scrapy.Spider):
                     resultado, status = salvar_pesquisa_thread(data)
                     
                     if status == 200:
-                        self.logger.info(f"[GoogleSpider] ✅ Resultado {i+1} sendo salvo em thread")
+                        self.logger.info(f"[GoogleSpider] Resultado {i+1} sendo salvo em thread")
                     else:
-                        self.logger.error(f"[GoogleSpider] ❌ Erro ao salvar: {resultado}")
+                        self.logger.error(f"[GoogleSpider] Erro ao salvar: {resultado}")
                         
                 except Exception as e:
-                    self.logger.error(f"[GoogleSpider] ❌ Exceção: {str(e)}")
+                    self.logger.error(f"[GoogleSpider] Exceção: {str(e)}")
 
     def errback(self, failure):
-        self.logger.error(f"[GoogleSpider] ❌ Erro na requisição: {failure.value}")
+        self.logger.error(f"[GoogleSpider] Erro na requisição: {failure.value}")

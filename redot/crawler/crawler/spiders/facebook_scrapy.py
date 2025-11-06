@@ -7,7 +7,7 @@ class FacebookSpider(scrapy.Spider):
     def __init__(self, nome_perfil='', *args, **kwargs):
         super(FacebookSpider, self).__init__(*args, **kwargs)
         self.nome_perfil = nome_perfil
-        self.start_urls = [f"https://www.facebook.com/{nome_perfil}"]  # Remova a barra final
+        self.start_urls = [f"https://www.facebook.com/{nome_perfil}"] 
         self.logger.info(f"[FacebookSpider] Iniciada para: {nome_perfil}")
 
     def start_requests(self):
@@ -42,23 +42,23 @@ class FacebookSpider(scrapy.Spider):
                     'url': response.url
                 }
 
-                self.logger.info(f"[FacebookSpider] Tentando salvar dados...")
+                self.logger.info("[FacebookSpider] Tentando salvar dados...")
                 
                 try:
                     from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa_thread
                     resultado, status = salvar_pesquisa_thread(data)
                     
                     if status == 200:
-                        self.logger.info(f"[FacebookSpider] ✅ Processo de salvamento iniciado em thread")
+                        self.logger.info("[FacebookSpider] Processo de salvamento iniciado em thread")
                     else:
-                        self.logger.error(f"[FacebookSpider] ❌ Erro ao iniciar salvamento: {resultado}")
+                        self.logger.error(f"[FacebookSpider] Erro ao iniciar salvamento: {resultado}")
                         
                 except Exception as e:
-                    self.logger.error(f"[FacebookSpider] ❌ Exceção ao salvar: {str(e)}")
+                    self.logger.error(f"[FacebookSpider] Exceção ao salvar: {str(e)}")
             else:
                 self.logger.warning(f"[FacebookSpider] Título inválido ou página de erro: {title}")
         else:
             self.logger.warning(f"[FacebookSpider] Status {response.status} - Não foi possível acessar")
 
     def errback(self, failure):
-        self.logger.error(f"[FacebookSpider] ❌ Erro na requisição: {failure.value}")
+        self.logger.error(f"[FacebookSpider] Erro na requisição: {failure.value}")
