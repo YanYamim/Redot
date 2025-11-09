@@ -2,9 +2,9 @@ import sys
 import django
 from django.conf import settings
         
-from crawler.spiders.facebook_scrapy import FacebookSpider
-from crawler.spiders.instagram_scrapy import InstagramSpider  
-from crawler.spiders.google_scrapy import GoogleSpider
+from ..crawler.spiders.facebook_scrapy import FacebookSpider
+from ..crawler.spiders.instagram_scrapy import InstagramSpider  
+from ..crawler.spiders.google_scrapy import GoogleSpider
 from scrapy.crawler import CrawlerProcess
 
 sys.path.insert(0, '/home/yanyamim/Documentos/trabalhos/python_scrappy')
