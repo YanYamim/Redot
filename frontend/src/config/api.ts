@@ -1,6 +1,11 @@
 // Configuração da API
 const rawEnv = import.meta.env.VITE_API_URL ?? ''
-let API_BASE_URL = rawEnv ? rawEnv.replace(/\/$/, '') : ''
+let API_BASE_URL = ''
+if (rawEnv) {
+  API_BASE_URL = rawEnv.replace(/\/api\/?$/, '').replace(/\/$/, '')
+} else {
+  API_BASE_URL = ''
+}
 
 if (!API_BASE_URL) {
   if (typeof window === 'undefined') {
@@ -8,8 +13,6 @@ if (!API_BASE_URL) {
   }
 }
 
-// Prefix API calls with /api in the browser so the dev server can proxy
-// them without colliding with client-side routes like /login.
 const apiPrefix = API_BASE_URL ? `${API_BASE_URL}/api` : '/api'
 
 export const API_ENDPOINTS = {
