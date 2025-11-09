@@ -13,6 +13,12 @@ if (!API_BASE_URL) {
   }
 }
 
+// If a build-time VITE_API_URL used http but the page is served over https,
+// upgrade the scheme at runtime so the browser doesn't block mixed content.
+if (typeof window !== 'undefined' && API_BASE_URL.startsWith('http:') && window.location.protocol === 'https:') {
+  API_BASE_URL = API_BASE_URL.replace(/^http:/, 'https:')
+}
+
 const apiPrefix = API_BASE_URL ? `${API_BASE_URL}/api` : '/api'
 
 export const API_ENDPOINTS = {
