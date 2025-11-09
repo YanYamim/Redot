@@ -86,9 +86,13 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      '/radar': {
-        target: 'http://localhost:5000',
+      // Proxy API calls under /api to the Django backend and strip the /api
+      // prefix so backend receives paths like /login, /radar, etc.
+      '/api': {
+        target: 'http://127.0.0.1:8000',
         changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ''),
       },
     }
   },

@@ -18,12 +18,9 @@ declare module 'vue' {
     Navbar: typeof import('./components/Navbar.vue')['default']
     PlanosPagamentos: typeof import('./components/PlanosPagamentos.vue')['default']
     Radar: typeof import('./components/Radar.vue')['default']
-    RadarSemIdentificacao: typeof import('./components/Radar.vue')['default']
-    Realizado: typeof import('./components/Realizado.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SobreNos: typeof import('./components/SobreNos.vue')['default']
     TelaLogin: typeof import('./components/TelaLogin.vue')['default']
-    TesteRadar: typeof import('./components/TesteRadar.vue')['default']
   }
 }
