@@ -1,5 +1,6 @@
 import scrapy
-import urllib.parse
+from scrapy.exceptions import CloseSpider
+from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa
 
 class GoogleSpider(scrapy.Spider):
     name = "google"
@@ -20,11 +21,14 @@ class GoogleSpider(scrapy.Spider):
                 errback=self.errback,
                 headers={
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                }
+                },
+                meta={'handle_httpstatus_all': True}
             )
 
     def parse(self, response):
-        self.logger.info(f"[GoogleSpider] Resposta recebida. Status: {response.status}")
+        if response.status != 200:
+            self.logger.error(f"[GoogleSpider] Status {response.status} - Perfil não encontrado: {response.url}")
+            raise CloseSpider('Perfil não encontrado')
         
         resultados = response.css('div.g') or response.css('div.tF2Cxc') or response.css('[data-sokoban-container]')
         self.logger.info(f"[GoogleSpider] Encontrados {len(resultados)} resultados")
@@ -32,15 +36,13 @@ class GoogleSpider(scrapy.Spider):
         if not resultados:
             data = {
                 'nome_pesquisa': self.nome_perfil,
-                'nome_resultado': f'Pesquisa Google: {self.nome_perfil}',
+                'resultado': f'Pesquisa Google: {self.nome_perfil}',
                 'fonte': 'google',
                 'url': response.url
             }
             
             try:
-                from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa_thread
-                resultado, status = salvar_pesquisa_thread(data)
-                self.logger.info("[GoogleSpider] Pesquisa salva (sem resultados detalhados)")
+                salvar_pesquisa(data)
             except Exception as e:
                 self.logger.error(f"[GoogleSpider] Erro ao salvar pesquisa: {str(e)}")
             return
@@ -51,6 +53,7 @@ class GoogleSpider(scrapy.Spider):
 
             if title and link:
                 if link.startswith('/url?'):
+                    import urllib.parse
                     parsed_url = urllib.parse.urlparse(link)
                     query_params = urllib.parse.parse_qs(parsed_url.query)
                     actual_url = query_params.get('q', [link])[0]
@@ -59,22 +62,17 @@ class GoogleSpider(scrapy.Spider):
 
                 data = {
                     'nome_pesquisa': self.nome_perfil,
-                    'nome_resultado': title.strip(),
+                    'resultado': title.strip(),
                     'fonte': 'google',
                     'url': response.urljoin(actual_url)
                 }
 
                 try:
-                    from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa_thread
-                    resultado, status = salvar_pesquisa_thread(data)
-                    
-                    if status == 200:
-                        self.logger.info(f"[GoogleSpider] Resultado {i+1} sendo salvo em thread")
-                    else:
-                        self.logger.error(f"[GoogleSpider] Erro ao salvar: {resultado}")
+                    salvar_pesquisa(data)
                         
                 except Exception as e:
                     self.logger.error(f"[GoogleSpider] Exceção: {str(e)}")
 
     def errback(self, failure):
         self.logger.error(f"[GoogleSpider] Erro na requisição: {failure.value}")
+        raise CloseSpider('Perfil não encontrado')

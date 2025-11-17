@@ -1,4 +1,6 @@
 import scrapy
+from scrapy.exceptions import CloseSpider
+from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa
 
 class FacebookSpider(scrapy.Spider):
     name = "facebook"
@@ -24,41 +26,34 @@ class FacebookSpider(scrapy.Spider):
                     'Accept-Encoding': 'gzip, deflate, br',
                     'Cache-Control': 'no-cache',
                 },
-                meta={'dont_retry': True}
+                meta={'dont_retry': True, 'handle_httpstatus_all': True}
             )
 
-    def parse(self, response):
-        self.logger.info(f"[FacebookSpider] Resposta recebida. Status: {response.status}")
+    def parse(self, response):        
+        if response.status != 200:
+            self.logger.error(f"[FacebookSpider] Status {response.status} - Perfil não encontrado: {response.url}")
+            raise CloseSpider('Perfil não encontrado')
+
+        title = response.css('title::text').get()
+        self.logger.info(f"[FacebookSpider] Título extraído: {title}")
+
+        if not title or title.lower() in ['facebook', 'error', 'not found']:
+            self.logger.error(f"[FacebookSpider] Título inválido ou página de erro: {title}")
+            raise CloseSpider('Perfil não encontrado')
+
+        data = {
+            'nome_pesquisa': self.nome_perfil,
+            'resultado': title.strip(),
+            'fonte': 'facebook',
+            'url': response.url
+        }
         
-        if response.status == 200:
-            title = response.css('title::text').get()
-            self.logger.info(f"[FacebookSpider] Título extraído: {title}")
-
-            if title and title.lower() not in ['facebook', 'error', 'not found']:
-                data = {
-                    'nome_pesquisa': self.nome_perfil,
-                    'resultado': title.strip(),
-                    'fonte': 'facebook',
-                    'url': response.url
-                }
-
-                self.logger.info("[FacebookSpider] Tentando salvar dados...")
+        try:
+            salvar_pesquisa(data)
                 
-                try:
-                    from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa_thread
-                    resultado, status = salvar_pesquisa_thread(data)
-                    
-                    if status == 200:
-                        self.logger.info("[FacebookSpider] Processo de salvamento iniciado em thread")
-                    else:
-                        self.logger.error(f"[FacebookSpider] Erro ao iniciar salvamento: {resultado}")
-                        
-                except Exception as e:
-                    self.logger.error(f"[FacebookSpider] Exceção ao salvar: {str(e)}")
-            else:
-                self.logger.warning(f"[FacebookSpider] Título inválido ou página de erro: {title}")
-        else:
-            self.logger.warning(f"[FacebookSpider] Status {response.status} - Não foi possível acessar")
+        except Exception as e:
+            self.logger.error(f"[FacebookSpider] Exceção ao salvar: {str(e)}")
 
     def errback(self, failure):
         self.logger.error(f"[FacebookSpider] Erro na requisição: {failure.value}")
+        raise CloseSpider('Perfil não encontrado')

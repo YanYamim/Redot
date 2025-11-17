@@ -1,49 +1,30 @@
 from ..models import Pesquisa
 import traceback
 import threading
+from django.db import close_old_connections, transaction
 
 def salvar_pesquisa(data):
-    """
-    Salva os resultados da pesquisa no banco de dados
-    """
-    try:
-        resultado_valor = data.get('resultado') or data.get('nome_resultado')
-        
-        nova_pesquisa = Pesquisa(
-            nome_pesquisa=data['nome_pesquisa'],
-            resultado=resultado_valor,
-            fonte=data['fonte'],
-            url_resultado=data['url']
-        )
-
-        nova_pesquisa.save()
-        return nova_pesquisa.to_dict(), 200
-
-    except Exception as e:
-        print("Erro ao salvar a pesquisa:", traceback.format_exc())
-        return {'error': str(e)}, 500
-
-def salvar_pesquisa_thread(data):
     """Salva dados em uma thread separada para evitar problemas de async"""
     def save():
         try:
+            close_old_connections()
             resultado_valor = data.get('resultado') or data.get('nome_resultado')
-            
-            nova_pesquisa = Pesquisa(
-                nome_pesquisa=data['nome_pesquisa'],
-                resultado=resultado_valor,
-                fonte=data['fonte'],
-                url_resultado=data['url']
-            )
 
-            nova_pesquisa.save()
-            print(f"Dados salvos em thread! ID: {nova_pesquisa.id_pesquisa}")
+            with transaction.atomic():
+                nova_pesquisa = Pesquisa(
+                    nome_pesquisa=data['nome_pesquisa'],
+                    resultado=resultado_valor,
+                    fonte=data['fonte'],
+                    url_resultado=data['url']
+                )
+                nova_pesquisa.save()
+
             return nova_pesquisa.to_dict(), 200
-            
+
         except Exception as e:
-            print(f"Erro ao salvar em thread: {e}")
+            print(f"[salvar_pesquisa_thread] Erro ao salvar em thread: {traceback.format_exc()}")
             return {'error': str(e)}, 500
-    
+
     thread = threading.Thread(target=save)
     thread.daemon = True
     thread.start()
