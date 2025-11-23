@@ -1,7 +1,7 @@
 import threading
 import logging
 from datetime import datetime
-from ..crawler.crawler.run_crawler import executar_spiders
+from ..crawler.crawler.run_crawler import executar_todos_spiders as executar_spiders
 
 logger = logging.getLogger('cron')
 scrapy_lock = threading.Lock()

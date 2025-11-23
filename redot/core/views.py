@@ -5,7 +5,7 @@ import json
 
 from .service.assinar_plano_svc import assinar_plano
 from .service.salvar_pesquisa_svc import buscar_resultados_bd
-from ..crawler.crawler.run_crawler import executar_spiders
+from ..crawler.crawler.run_crawler import executar_todos_spiders as executar_spiders
 from ..core.cron import pesquisa_atual
 
 status_cron_data = {}
