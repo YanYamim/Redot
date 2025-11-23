@@ -30,7 +30,6 @@ class FacebookSpider(scrapy.Spider):
     def parse(self, response):
         if response.status != 200:
             self.logger.error(f"[FacebookSpider] Status {response.status}")
-            # Salva erro de forma compatível
             data = {
                 'nome_pesquisa': self.nome_perfil,
                 'resultado': f'Erro ao buscar perfil Facebook - Status {response.status}',
@@ -48,16 +47,14 @@ class FacebookSpider(scrapy.Spider):
 
         perfis_encontrados = 0
 
-        for resultado in resultados[:3]:  # Limita a 3 resultados
+        for resultado in resultados[:3]:  
             title = resultado.css('h3::text, [role="heading"]::text').get()
             link = resultado.css('a::attr(href)').get()
 
             if title and link and 'facebook.com' in link:
-                # Processa URL do Google
                 url_final = self.processar_url(link, response)
                 nome_perfil_extraido = self.extrair_nome_perfil(url_final)
                 
-                # Estrutura COMPATÍVEL com o service
                 data = {
                     'nome_pesquisa': self.nome_perfil,
                     'resultado': nome_perfil_extraido or title.strip(),
@@ -72,7 +69,6 @@ class FacebookSpider(scrapy.Spider):
                 except Exception as e:
                     self.logger.error(f"[FacebookSpider] Erro ao salvar: {str(e)}")
 
-        # Se não encontrou perfis, salva a pesquisa vazia
         if perfis_encontrados == 0:
             data = {
                 'nome_pesquisa': self.nome_perfil,

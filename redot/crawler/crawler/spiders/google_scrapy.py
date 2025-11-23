@@ -10,7 +10,6 @@ class GoogleSpider(scrapy.Spider):
     def __init__(self, nome_perfil='', *args, **kwargs):
         super(GoogleSpider, self).__init__(*args, **kwargs)
         self.nome_perfil = nome_perfil
-        # Codifica o termo de pesquisa para URL
         self.start_urls = [f"https://www.google.com/search?q={quote(nome_perfil)}"]
         self.logger.info(f"[GoogleSpider] Iniciada para: {nome_perfil}")
 
@@ -37,7 +36,6 @@ class GoogleSpider(scrapy.Spider):
     def parse(self, response):
         if response.status != 200:
             self.logger.error(f"[GoogleSpider] Status {response.status} - Pesquisa falhou: {response.url}")
-            # Salva mesmo em caso de erro, mas com informação do status
             data = {
                 'nome_pesquisa': self.nome_perfil,
                 'resultado': f'Erro na pesquisa Google - Status {response.status}',
@@ -50,7 +48,6 @@ class GoogleSpider(scrapy.Spider):
                 self.logger.error(f"[GoogleSpider] Erro ao salvar pesquisa com erro: {str(e)}")
             return
         
-        # Múltiplos seletores para diferentes layouts do Google
         resultados = (response.css('div.g') | 
                      response.css('div.tF2Cxc') | 
                      response.css('[data-sokoban-container]') |
@@ -60,7 +57,7 @@ class GoogleSpider(scrapy.Spider):
 
         resultados_salvos = 0
 
-        for i, resultado in enumerate(resultados[:5]):  # Aumentei para 5 resultados
+        for i, resultado in enumerate(resultados[:5]):  
             title = self.extrair_titulo(resultado)
             link = self.extrair_link(resultado)
 
@@ -81,7 +78,6 @@ class GoogleSpider(scrapy.Spider):
                 except Exception as e:
                     self.logger.error(f"[GoogleSpider] Erro ao salvar resultado {i+1}: {str(e)}")
 
-        # Se não encontrou nenhum resultado válido, salva a pesquisa vazia
         if resultados_salvos == 0:
             data = {
                 'nome_pesquisa': self.nome_perfil,
@@ -116,9 +112,8 @@ class GoogleSpider(scrapy.Spider):
         if link.startswith('/url?'):
             try:
                 from urllib.parse import parse_qs
-                parsed_url = parse_qs(link[5:])  # Remove '/url?'
+                parsed_url = parse_qs(link[5:])  
                 actual_url = parsed_url.get('q', [link])[0]
-                # Decodifica URL se necessário
                 return unquote(actual_url)
             except Exception as e:
                 self.logger.warning(f"[GoogleSpider] Erro ao processar URL: {e}")
@@ -129,7 +124,6 @@ class GoogleSpider(scrapy.Spider):
     def errback(self, failure):
         self.logger.error(f"[GoogleSpider] Erro na requisição: {failure.value}")
         
-        # Salva informação do erro
         data = {
             'nome_pesquisa': self.nome_perfil,
             'resultado': f'Erro na pesquisa Google: {str(failure.value)}',

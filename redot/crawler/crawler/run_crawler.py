@@ -4,7 +4,6 @@ import django
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 
-# Configuração Django
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
@@ -22,7 +21,6 @@ def executar_todos_spiders(nome_perfil):
     Executa todos os spiders em sequência no mesmo processo
     """
     try:
-        # Usa settings do Scrapy
         settings = get_project_settings()
         settings.update({
             'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
@@ -34,7 +32,6 @@ def executar_todos_spiders(nome_perfil):
         
         process = CrawlerProcess(settings)
         
-        # Executa todos os spiders
         from ..crawler.spiders.facebook_scrapy import FacebookSpider
         from ..crawler.spiders.instagram_scrapy import InstagramSpider  
         from ..crawler.spiders.google_scrapy import GoogleSpider
@@ -43,7 +40,7 @@ def executar_todos_spiders(nome_perfil):
         process.crawl(InstagramSpider, nome_perfil=nome_perfil)
         process.crawl(GoogleSpider, nome_perfil=nome_perfil)
         
-        process.start()  # Bloqueia até todos terminarem
+        process.start()  
         
         return {"status": "completed", "spiders": 3}
         
