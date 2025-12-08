@@ -1,5 +1,6 @@
 import pytest
-from unittest.mock import patch
+import logging
+from unittest.mock import patch, MagicMock
 
 from redot.core.cron import (
     start_scrapy,
@@ -20,34 +21,41 @@ def reset_state():
     yield
 
 
-def test_start_scrapy_sem_nome(capfd):
+def test_start_scrapy_sem_nome(caplog):
     """Sem nome definido, deve apenas logar e não executar spiders."""
-    start_scrapy("minutalmente")
-    out, _ = capfd.readouterr()
-    assert "Nenhum termo para pesquisar" in out
+    with caplog.at_level(logging.WARNING):
+        start_scrapy("minutalmente")
+    
+    assert "Nenhum perfil definido" in caplog.text
     assert ultimos_resultados["status"] == "Aguardando primeira execução"
 
 
-@patch("redot.core.cron.executar_spiders")
-def test_start_scrapy_com_sucesso(mock_executar):
+@patch('redot.core.cron.CrawlerProcess')
+def test_start_scrapy_com_sucesso(mock_crawler_process):
     """Com nome definido e execução ok, deve atualizar ultimos_resultados."""
+    mock_instance = MagicMock()
+    mock_crawler_process.return_value = mock_instance
+    
     pesquisa_atual["nome_perfil"] = "perfil_teste"
-    mock_executar.return_value = {"result": "ok"}
 
     start_scrapy("diariamente")
 
-    assert ultimos_resultados["dados"] == {"result": "ok"}
+    mock_crawler_process.assert_called_once()
+    
     assert ultimos_resultados["status"] == "Sucesso"
     assert ultimos_resultados["ultima_execucao"] is not None
+    assert ultimos_resultados["dados"] == {'status': 'completo'}
 
 
-@patch("redot.core.cron.executar_spiders")
-def test_start_scrapy_erro(mock_executar):
+@patch('redot.core.cron.CrawlerProcess')
+def test_start_scrapy_erro(mock_crawler_process):
     """Em caso de erro do executor, status deve refletir o erro."""
+    mock_crawler_process.side_effect = Exception("erro mockado")
+    
     pesquisa_atual["nome_perfil"] = "perfil_teste"
-    mock_executar.side_effect = Exception("erro mockado")
 
     start_scrapy("mensalmente")
 
     assert ultimos_resultados["dados"] is None
     assert "Erro: erro mockado" in ultimos_resultados["status"]
+    assert ultimos_resultados["ultima_execucao"] is not None

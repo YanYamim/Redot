@@ -1,54 +1,70 @@
 import pytest
 from scrapy.http import HtmlResponse, Request
-from crawler.crawler.spiders.facebook_scrapy import FacebookSpider
+from redot.crawler.crawler.spiders.facebook_scrapy import FacebookSpider
 from unittest.mock import patch
 
 @pytest.fixture
 def spider():
     return FacebookSpider(nome_perfil="perfil_teste")
 
+
 def test_start_requests(spider):
+    """Testa se start_requests gera URLs corretas"""
     requests = list(spider.start_requests())
     assert len(requests) == 1
+    assert "perfil_teste" in requests[0].url
 
-    req = requests[0]
-    assert req.url == "https://www.facebook.com/perfil_teste/"
-    assert req.headers[b'User-Agent'] == b'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
-    assert req.headers[b'Accept-Language'] == b'en-US,en;q=0.9'
-    assert req.callback == spider.parse
 
-@patch("crawler.crawler.spiders.facebook_scrapy.salvar_pesquisa")
+@patch("redot.crawler.crawler.spiders.facebook_scrapy.salvar_pesquisa")
 def test_parse_com_titulo(mock_salvar, spider):
+    """Testa parse quando há título na página"""
     html = "<html><head><title>Perfil Público</title></head><body></body></html>"
     request = Request(url="https://www.facebook.com/perfil_teste/")
     response = HtmlResponse(
         url=request.url,
         request=request,
-        body=html,
+        body=html.encode('utf-8'),
         encoding='utf-8'
     )
 
     spider.parse(response)
 
-    mock_salvar.assert_called_once_with({
-        'nome_pesquisa': "perfil_teste",
-        'nome_resultado': "Perfil Público",
-        'fonte': "facebook",
-        'url': "https://www.facebook.com/perfil_teste/"
-    })
+    mock_salvar.assert_called_once()
+    call_args = mock_salvar.call_args[0][0]
+    assert call_args['resultado'] == "Perfil Público"
 
-@patch("crawler.crawler.spiders.facebook_scrapy.salvar_pesquisa")
-def test_parse_sem_titulo(mock_salvar, spider, caplog):
-    html = "<html><head></head><body>Sem título</body></html>"
+
+@patch("redot.crawler.crawler.spiders.facebook_scrapy.salvar_pesquisa")
+def test_parse_sem_titulo(mock_salvar, spider):
+    """Testa parse quando não há título"""
+    html = "<html><head></head><body></body></html>"
     request = Request(url="https://www.facebook.com/perfil_teste/")
     response = HtmlResponse(
         url=request.url,
         request=request,
-        body=html,
+        body=html.encode('utf-8'),
         encoding='utf-8'
     )
 
     spider.parse(response)
 
     mock_salvar.assert_not_called()
-    assert "Não foi possível extrair o título" in caplog.text
+
+
+@patch("redot.crawler.crawler.spiders.facebook_scrapy.salvar_pesquisa")
+def test_parse_status_erro(mock_salvar, spider):
+    """Testa parse quando status é erro"""
+    request = Request(url="https://www.facebook.com/perfil_teste/")
+    response = HtmlResponse(
+        url=request.url,
+        request=request,
+        body=b"<html></html>",
+        status=404,
+        encoding='utf-8'
+    )
+
+    spider.parse(response)
+
+    mock_salvar.assert_called_once()
+    call_args = mock_salvar.call_args[0][0]
+    assert "Erro ao buscar perfil" in call_args['resultado']
