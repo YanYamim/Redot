@@ -14,11 +14,11 @@
       
       <div class="button-group">
         <v-btn 
-          @click="buscarResultado(true)" 
+          @click="buscarResultado()" 
           :loading="loading" 
           color="blue"
         >
-          Pesquisar com identificação
+          Pesquisar
         </v-btn>
       </div>
     </v-form>
@@ -29,7 +29,7 @@
         :headers="headers"
         :items="resultados"
         :items-length="totalResultados"
-        :loading="loading || loadingResults"
+        :loading="loading"
         class="radar-table elevation-5"
       >
         <template v-slot:item.fonte="{ item }">
@@ -38,14 +38,16 @@
           </v-chip>
         </template>
 
-        <template v-slot:item.url="{ item }" v-if="mostrarUrls">
-          <a :href="item.url" target="_blank" rel="noopener noreferrer">
+        <template v-slot:item.url="{ item }">
+          <a :href="item.url" target="_blank" rel="noopener noreferrer" v-if="item.url">
             <v-icon>mdi-open-in-new</v-icon>
           </a>
         </template>
 
         <template v-slot:no-data>
-          <div class="text-center pa-4">{{ resultadosCarregados ? 'Nada encontrado sobre essa empresa' : 'Aguardando resultados...' }}</div>
+          <div class="text-center pa-4">
+            {{ resultadosCarregados ? 'Nada encontrado sobre essa empresa' : 'Aguardando resultados...' }}
+          </div>
         </template>
       </v-data-table-server>
     </v-container>
@@ -54,15 +56,13 @@
 
 <script setup>
 import { ref } from 'vue';
-import { API_ENDPOINTS } from '@/config/api'
+import { API_ENDPOINTS } from '@/config/api';
 
 const palavraPesquisa = ref('');
 const resultados = ref([]);
 const itensPorPagina = ref(10);
 const totalResultados = ref(0);
 const loading = ref(false);
-const loadingResults = ref(false);
-const mostrarUrls = ref(true);
 const mensagemBackend = ref('');
 const resultadosCarregados = ref(false);
 
@@ -72,114 +72,72 @@ const rules = [
 ];
 
 const headers = [
-  { title: 'Título', value: 'titulo' },
+  { title: 'Resultado', value: 'resultado' },
   { title: 'Fonte', value: 'fonte' },
   { title: 'Link', value: 'url' }
 ];
 
 const formatarFonte = (fonte) => {
-  const fontes = {
-    'instagram': 'Instagram',
-    'facebook': 'Facebook',
-    'google': 'Google'
-  };
+  const fontes = { instagram: 'Instagram', facebook: 'Facebook', google: 'Google' };
   return fontes[fonte] || fonte;
 };
 
 const getCorFonte = (fonte) => {
-  const cores = {
-    'instagram': 'purple',
-    'facebook': 'blue',
-    'google': 'green'
-  };
+  const cores = { instagram: 'purple', facebook: 'blue', google: 'green' };
   return cores[fonte] || 'grey';
 };
 
 const buscarResultado = async () => {
   if (!palavraPesquisa.value) return;
-  
+
   loading.value = true;
   mensagemBackend.value = '';
   resultadosCarregados.value = false;
+  resultados.value = [];
 
   try {
-    const response = await fetch(API_ENDPOINTS.RADAR, {
+    const postResp = await fetch(API_ENDPOINTS.RADAR, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nome_perfil: palavraPesquisa.value })
     });
+    const postData = await postResp.json();
 
-    const data = await response.json();
-    mensagemBackend.value = data.mensagem;
-    
-    await buscarResultadosPeriodicamente();
+    if (!postResp.ok) {
+      mensagemBackend.value = postData.erro || 'Erro ao iniciar pesquisa';
+      resultadosCarregados.value = true;
+      return;
+    }
 
-  } catch (error) {
-    console.error("Erro na pesquisa:", error);
-    mensagemBackend.value = "Erro ao iniciar a pesquisa";
+    mensagemBackend.value = postData.mensagem || 'Pesquisa iniciada...';
+
+    const url = `${API_ENDPOINTS.RADAR_RESULTADOS}?nome_perfil=${encodeURIComponent(palavraPesquisa.value)}`;
+    const getResp = await fetch(url);
+    const getData = await getResp.json();
+
+    if (getData.erro) throw new Error(getData.erro);
+
+    if (Array.isArray(getData.resultados)) {
+      resultados.value = getData.resultados.map((r, idx) => ({
+        id: idx,
+        resultado: r.resultado || r.nome_pesquisa || r.nome_perfil || '',
+        fonte: r.fonte,
+        url: r.url,
+      }));
+      totalResultados.value = resultados.value.length;
+    } else {
+      resultados.value = [];
+      totalResultados.value = 0;
+    }
+
+    resultadosCarregados.value = true;
+    mensagemBackend.value = `Consultado. ${resultados.value.length} resultado(s) encontrado(s)`;
+
+  } catch (e) {
+    mensagemBackend.value = `Erro: ${e.message}`;
+    resultadosCarregados.value = true;
   } finally {
     loading.value = false;
   }
 };
-
-const buscarResultadosPeriodicamente = async () => {
-  loadingResults.value = true;
-  const maxTentativas = 15;
-  let tentativas = 0;
-
-  const verificarResultados = async () => {
-    tentativas++;
-    
-    try {
-      const response = await fetch(API_ENDPOINTS.RADAR_RESULTADOS, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome_perfil: palavraPesquisa.value })
-      });
-
-      const data = await response.json();
-      
-      if (data.erro) throw new Error(data.erro);
-      
-      const existentes = new Set(resultados.value.map(r => r.id));
-      const novos = data.resultados
-        .filter(r => !existentes.has(r.id))
-        .map(r => ({
-          ...r,
-          empresa: palavraPesquisa.value
-        }));
-      resultados.value = [...resultados.value, ...novos];
-      
-      totalResultados.value = resultados.value.length;
-      
-      const deveParar = data.resultados.length > 0 || 
-                       data.status === 'completo' || 
-                       tentativas >= maxTentativas;
-      
-      if (deveParar) {
-        resultadosCarregados.value = true;
-        if (tentativas >= maxTentativas) {
-          mensagemBackend.value += "\nMáximo de tentativas alcançado";
-        }
-      }
-      
-      return deveParar;
-      
-    } catch (error) {
-      if (tentativas >= maxTentativas) {
-        mensagemBackend.value += `\nErro: ${error.message}`;
-        resultadosCarregados.value = true;
-        return true;
-      }
-      return false;
-    }
-  };
-
-  while (!(await verificarResultados()) && tentativas < maxTentativas) {
-    await new Promise(resolve => setTimeout(resolve, 2000));
-  }
-
-  loadingResults.value = false;
-};
-
 </script>
