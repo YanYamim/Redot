@@ -1,4 +1,4 @@
-#!/home/yanyamim/Documentos/trabalhos/python_scrappy/.venv/bin/python
+#!/home/yan/Documentos/Redot/.venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

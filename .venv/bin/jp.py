@@ -1,4 +1,4 @@
-#!/home/yanyamim/Documentos/trabalhos/python_scrappy/.venv/bin/python3
+#!/home/yan/Documentos/Redot/.venv/bin/python
 
 import sys
 import json
