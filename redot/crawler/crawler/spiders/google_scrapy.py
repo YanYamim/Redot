@@ -1,7 +1,6 @@
 import scrapy
 from scrapy.exceptions import CloseSpider
 from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa
-from urllib.parse import quote, unquote
 
 class GoogleSpider(scrapy.Spider):
     name = "google"
@@ -10,7 +9,7 @@ class GoogleSpider(scrapy.Spider):
     def __init__(self, nome_perfil='', *args, **kwargs):
         super(GoogleSpider, self).__init__(*args, **kwargs)
         self.nome_perfil = nome_perfil
-        self.start_urls = [f"https://www.google.com/search?q={quote(nome_perfil)}"]
+        self.start_urls = [f"https://www.google.com/search?q={nome_perfil}"]
         self.logger.info(f"[GoogleSpider] Iniciada para: {nome_perfil}")
 
     def start_requests(self):
@@ -90,36 +89,6 @@ class GoogleSpider(scrapy.Spider):
                 self.logger.info("[GoogleSpider] Pesquisa sem resultados salva")
             except Exception as e:
                 self.logger.error(f"[GoogleSpider] Erro ao salvar pesquisa vazia: {str(e)}")
-
-    def extrair_titulo(self, resultado):
-        """Extrai título do resultado de busca"""
-        titulo = (resultado.css('h3::text').get() or 
-                 resultado.css('[role="heading"]::text').get() or
-                 resultado.css('h3 span::text').get() or
-                 resultado.css('a h3::text').get())
-        return titulo
-
-    def extrair_link(self, resultado):
-        """Extrai link do resultado de busca"""
-        link = resultado.css('a::attr(href)').get()
-        return link
-
-    def processar_url(self, link, response):
-        """Processa URLs do Google para obter o link real"""
-        if not link:
-            return ""
-            
-        if link.startswith('/url?'):
-            try:
-                from urllib.parse import parse_qs
-                parsed_url = parse_qs(link[5:])  
-                actual_url = parsed_url.get('q', [link])[0]
-                return unquote(actual_url)
-            except Exception as e:
-                self.logger.warning(f"[GoogleSpider] Erro ao processar URL: {e}")
-                return response.urljoin(link)
-        else:
-            return response.urljoin(link)
 
     def errback(self, failure):
         self.logger.error(f"[GoogleSpider] Erro na requisição: {failure.value}")

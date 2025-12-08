@@ -1,21 +1,18 @@
 import scrapy
 from scrapy.exceptions import CloseSpider
 from redot.core.service.salvar_pesquisa_svc import salvar_pesquisa
-from urllib.parse import quote, unquote
-import re
 
 class FacebookSpider(scrapy.Spider):
     name = "facebook"
-    allowed_domains = ["google.com"]
+    allowed_domains = ["facebook.com"]
     
     def __init__(self, nome_perfil='', *args, **kwargs):
         super(FacebookSpider, self).__init__(*args, **kwargs)
         self.nome_perfil = nome_perfil
-        self.start_urls = [f"https://www.google.com/search?q=site:facebook.com+{quote(nome_perfil)}"]
-        self.logger.info(f"[FacebookSpider] Buscando perfil: {nome_perfil}")
+        self.start_urls = [f"https://www.facebook.com/{nome_perfil}"] 
+        self.logger.info(f"[FacebookSpider] Iniciada para: {nome_perfil}")
 
     def start_requests(self):
-        self.logger.info(f"[FacebookSpider] Iniciando requests para: {self.start_urls}")
         for url in self.start_urls:
             yield scrapy.Request(
                 url=url,
@@ -80,24 +77,6 @@ class FacebookSpider(scrapy.Spider):
                 salvar_pesquisa(data)
             except Exception as e:
                 self.logger.error(f"[FacebookSpider] Erro ao salvar pesquisa vazia: {str(e)}")
-
-    def processar_url(self, link, response):
-        """Processa URLs do Google para obter link real"""
-        if link.startswith('/url?'):
-            try:
-                from urllib.parse import parse_qs
-                parsed_url = parse_qs(link[5:])
-                actual_url = parsed_url.get('q', [link])[0]
-                return unquote(actual_url)
-            except Exception:
-                return response.urljoin(link)
-        else:
-            return response.urljoin(link)
-
-    def extrair_nome_perfil(self, url):
-        """Extrai nome do perfil do URL do Facebook"""
-        match = re.search(r'facebook\.com/([^/?]+)', url)
-        return match.group(1) if match else None
 
     def errback(self, failure):
         self.logger.error(f"[FacebookSpider] Erro: {failure.value}")

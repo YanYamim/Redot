@@ -1,7 +1,8 @@
 import threading
 import logging
 from datetime import datetime
-from ..crawler.crawler.run_crawler import executar_todos_spiders as executar_spiders
+from scrapy.crawler import CrawlerProcess
+from scrapy.utils.project import get_project_settings
 
 logger = logging.getLogger('cron')
 scrapy_lock = threading.Lock()
@@ -21,17 +22,22 @@ def start_scrapy(frequencia):
     nome_perfil = pesquisa_atual.get("nome_perfil")
     if not nome_perfil:
         logger.warning(f"[{frequencia.upper()}] Nenhum perfil definido para pesquisa.")
-        print("Nenhum termo para pesquisar")
         return
     
     with scrapy_lock:
         try:
             logger.info(f"Iniciando scraping para {nome_perfil} ({frequencia})...")
             
-            resultado = executar_spiders(nome_perfil)
+            # Executa spiders direto sem run_crawler.py
+            settings = get_project_settings()
+            process = CrawlerProcess(settings)
+            process.crawl('instagram', nome_perfil=nome_perfil)
+            process.crawl('google', nome_perfil=nome_perfil)
+            process.crawl('facebook', nome_perfil=nome_perfil)
+            process.start()
             
             ultimos_resultados.update({
-                'dados': resultado,
+                'dados': {'status': 'completo'},
                 'ultima_execucao': datetime.now().isoformat(),
                 'status': 'Sucesso'
             })
@@ -62,7 +68,7 @@ def crawl_mensalmente():
     start_scrapy("mensalmente")
 
 def obter_resultados():
-    """Função para obter os últimos resultados (mantida do código original)"""
+    """Função para obter os últimos resultados"""
     return ultimos_resultados
 
 def definir_perfil_pesquisa(nome_perfil):

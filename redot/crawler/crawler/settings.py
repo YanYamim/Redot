@@ -38,11 +38,6 @@ TWISTED_REACTOR = "twisted.internet.epollreactor.EPollReactor"
 
 # Obey robots.txt rules
 
-# Concurrency and throttling settings
-#CONCURRENT_REQUESTS = 16
-CONCURRENT_REQUESTS_PER_DOMAIN = 1
-DOWNLOAD_DELAY = 1
-
 # Disable cookies (enabled by default)
 #COOKIES_ENABLED = False
 
@@ -67,6 +62,7 @@ DOWNLOADER_MIDDLEWARES = {
     'crawler.middlewares.ProxyMiddleware': 350,  
     'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 400,
     'scrapy.downloadermiddlewares.retry.RetryMiddleware': 90,
+    'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,  
 }
 
 # Proxy configuration
@@ -82,12 +78,23 @@ PROXIES = {
     'https': HTTPS_PROXY,
 }
 
-ROBOTSTXT_OBEY = False
+# Concurrency and throttling settings
+ROBOTSTXT_OBEY = False  
+
+# Concurrency and throttling settings
+CONCURRENT_REQUESTS = 1 
+CONCURRENT_REQUESTS_PER_DOMAIN = 1  
+DOWNLOAD_DELAY = 2  
+RANDOMIZE_DOWNLOAD_DELAY = True 
+
 COOKIES_ENABLED = False
-DOWNLOAD_TIMEOUT = 30
-RETRY_TIMES = 3
+DOWNLOAD_TIMEOUT = 30 
+RETRY_TIMES = 3  
+RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 524, 408, 429, 403]  
+
 
 USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+LOG_LEVEL = 'INFO'
 
 # Headers adicionais para evitar bloqueios
 DEFAULT_REQUEST_HEADERS = {
@@ -97,6 +104,9 @@ DEFAULT_REQUEST_HEADERS = {
     'DNT': '1',
     'Connection': 'keep-alive',
     'Upgrade-Insecure-Requests': '1',
+    'Sec-Fetch-Dest': 'document',  
+    'Sec-Fetch-Mode': 'navigate',  
+    'Sec-Fetch-Site': 'none',  
 }
 
 # Enable or disable extensions
