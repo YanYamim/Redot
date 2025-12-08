@@ -33,7 +33,7 @@ pip==25.0.1
 platformdirs==4.5.0
 pluggy==1.6.0
 protego==0.5.0
-psycopg2-binary==2.9.9
+psycopg[binary]
 pyasn1==0.6.1
 pyasn1-modules==0.4.2
 pycodestyle==2.14.0
