@@ -86,7 +86,6 @@ const getCorFonte = (fonte) => {
   const cores = { instagram: 'purple', facebook: 'blue', google: 'green' };
   return cores[fonte] || 'grey';
 };
-
 const buscarResultado = async () => {
   if (!palavraPesquisa.value) return;
 
@@ -118,20 +117,30 @@ const buscarResultado = async () => {
     if (getData.erro) throw new Error(getData.erro);
 
     if (Array.isArray(getData.resultados)) {
-      resultados.value = getData.resultados.map((r, idx) => ({
-        id: idx,
-        resultado: r.resultado || r.nome_pesquisa || r.nome_perfil || '',
-        fonte: r.fonte,
-        url: r.url,
-      }));
-      totalResultados.value = resultados.value.length;
+      const urlsVistas = new Set();
+      const resultadosFiltrados = [];
+      
+      getData.resultados.forEach((r, idx) => {
+        if (r.url && !urlsVistas.has(r.url)) {
+          urlsVistas.add(r.url);
+          resultadosFiltrados.push({
+            id: idx,
+            resultado: r.resultado || r.nome_pesquisa || r.nome_perfil || palavraPesquisa.value,
+            fonte: r.fonte,
+            url: r.url,
+          });
+        }
+      });
+
+      resultados.value = resultadosFiltrados;
+      totalResultados.value = resultadosFiltrados.length;
     } else {
       resultados.value = [];
       totalResultados.value = 0;
     }
 
     resultadosCarregados.value = true;
-    mensagemBackend.value = `Consultado. ${resultados.value.length} resultado(s) encontrado(s)`;
+    mensagemBackend.value = `Consultado. ${resultados.value.length} resultado(s) único(s) encontrado(s)`;
 
   } catch (e) {
     mensagemBackend.value = `Erro: ${e.message}`;
